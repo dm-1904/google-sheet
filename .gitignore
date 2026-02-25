@@ -1,3 +1,4 @@
+<<<<<<< ours
 # Logs
 logs
 *.log
@@ -23,6 +24,8 @@ dist-ssr
 *.sln
 *.sw?
 
+=======
+>>>>>>> theirs
 node_modules
 dist
 .env

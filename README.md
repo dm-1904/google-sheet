@@ -1,3 +1,4 @@
+<<<<<<< ours
 # React + TypeScript + Vite
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
@@ -74,6 +75,8 @@ export default defineConfig([
 
 // BEGIN README FILE FROM CODEX
 
+=======
+>>>>>>> theirs
 # Google Sheets Blog CMS (Beginner Friendly)
 
 This project lets you manage blog posts inside a Google Sheet, and show them in a website.
@@ -127,6 +130,45 @@ This project lets you manage blog posts inside a Google Sheet, and show them in 
 
 ---
 
+<<<<<<< ours
+=======
+
+## 1.5) Root `package.json` (important)
+
+If your root `package.json` still looks like a single Vite app (with `"dev": "vite"`), replace it with this monorepo version:
+
+```json
+{
+  "name": "google-sheet-blog-monorepo",
+  "private": true,
+  "version": "1.0.0",
+  "workspaces": ["client", "server"],
+  "scripts": {
+    "dev": "concurrently \"npm run dev -w server\" \"npm run dev -w client\"",
+    "build": "npm run build -w server && npm run build -w client",
+    "start": "npm run start -w server"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.0"
+  }
+}
+```
+
+Why this change:
+- Root package should orchestrate both apps, not run Vite directly.
+- `client` handles frontend Vite scripts.
+- `server` handles Express scripts.
+
+Then run:
+
+```bash
+npm install
+npm run dev
+```
+
+---
+
+>>>>>>> theirs
 ## 2) Install required tools first (one-time)
 
 If you know nothing about code, do these first:
@@ -167,7 +209,10 @@ first-post | My First SEO Post | Simple meta description | https://picsum.photos
 ```
 
 Rules:
+<<<<<<< ours
 
+=======
+>>>>>>> theirs
 - `slug` must be unique and URL-safe (example: `first-post`).
 - `tags` is comma-separated text.
 - `publishedAt` should be `YYYY-MM-DD` or another parseable date.
@@ -219,12 +264,18 @@ GOOGLE_APPLICATION_CREDENTIALS=/absolute/path/to/your-service-account.json
 ```
 
 How to get `SPREADSHEET_ID`:
+<<<<<<< ours
 
+=======
+>>>>>>> theirs
 - From sheet URL:
   - `https://docs.google.com/spreadsheets/d/<THIS_PART_IS_ID>/edit...`
 
 Alternative auth option:
+<<<<<<< ours
 
+=======
+>>>>>>> theirs
 - Instead of `GOOGLE_APPLICATION_CREDENTIALS`, you can set `GOOGLE_SERVICE_ACCOUNT_KEY` with raw JSON.
 
 ### Client env
@@ -261,7 +312,10 @@ npm run dev
 ```
 
 This starts:
+<<<<<<< ours
 
+=======
+>>>>>>> theirs
 - Server: `http://localhost:4000`
 - Client: `http://localhost:5173`
 
@@ -304,24 +358,36 @@ npm run dev -w client
 ## 11) Troubleshooting (very common)
 
 ### A) `Post not found`
+<<<<<<< ours
 
+=======
+>>>>>>> theirs
 - Check the sheet row has `slug` and `title`.
 - Make sure URL slug exactly matches sheet slug.
 
 ### B) Permission/403 from Google
+<<<<<<< ours
 
+=======
+>>>>>>> theirs
 - Confirm sheet is shared with service account email.
 - Confirm correct JSON key file path.
 - Confirm Google Sheets API is enabled in correct project.
 
 ### C) No posts show up
+<<<<<<< ours
 
+=======
+>>>>>>> theirs
 - Confirm tab name is `Posts`.
 - Confirm exact header row text.
 - Confirm `SPREADSHEET_ID` is correct.
 
 ### D) CORS error in browser
+<<<<<<< ours
 
+=======
+>>>>>>> theirs
 - Confirm `CLIENT_ORIGIN=http://localhost:5173` in `server/.env`.
 - Restart server after `.env` changes.
 
