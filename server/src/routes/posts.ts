@@ -1,18 +1,10 @@
-<<<<<<< ours
-import { Router } from "express";
-import { getAllPosts, getPostBySlug } from "../services/sheetsCms.js";
-
-export const postsRouter = Router();
-
-postsRouter.get("/", async (_req, res) => {
-=======
 import { Router } from 'express';
+import type { Request, Response } from 'express';
 import { getAllPosts, getPostBySlug } from '../services/sheetsCms.js';
 
 export const postsRouter = Router();
 
-postsRouter.get('/', async (_req, res) => {
->>>>>>> theirs
+postsRouter.get('/', async (_req: Request, res: Response) => {
   try {
     const posts = await getAllPosts();
 
@@ -20,38 +12,36 @@ postsRouter.get('/', async (_req, res) => {
     const indexPosts = posts.map(({ contentHtml, ...post }) => post);
     res.json({ posts: indexPosts });
   } catch (error) {
-<<<<<<< ours
-    const message = error instanceof Error ? error.message : "Unknown error";
-=======
-    const message = error instanceof Error ? error.message : 'Unknown error';
->>>>>>> theirs
-    res.status(500).json({ error: `Unable to fetch posts: ${message}` });
+    console.error('Unable to fetch posts:', error);
+    res.status(500).json({ error: 'Unable to fetch posts' });
   }
 });
 
-<<<<<<< ours
-postsRouter.get("/:slug", async (req, res) => {
+postsRouter.get('/:slug', async (req: Request, res: Response) => {
+  const rawSlug = req.params.slug;
+  if (Array.isArray(rawSlug)) {
+    res.status(400).json({ error: 'Invalid slug' });
+    return;
+  }
+
+  let decodedSlug: string;
   try {
-    const post = await getPostBySlug(req.params.slug);
-    if (!post) {
-      res.status(404).json({ error: "Post not found" });
-=======
-postsRouter.get('/:slug', async (req, res) => {
+    decodedSlug = decodeURIComponent(rawSlug);
+  } catch {
+    res.status(400).json({ error: 'Invalid slug' });
+    return;
+  }
+
   try {
-    const post = await getPostBySlug(req.params.slug);
+    const post = await getPostBySlug(decodedSlug);
     if (!post) {
       res.status(404).json({ error: 'Post not found' });
->>>>>>> theirs
       return;
     }
 
     res.json({ post });
   } catch (error) {
-<<<<<<< ours
-    const message = error instanceof Error ? error.message : "Unknown error";
-=======
-    const message = error instanceof Error ? error.message : 'Unknown error';
->>>>>>> theirs
-    res.status(500).json({ error: `Unable to fetch post: ${message}` });
+    console.error('Unable to fetch post:', error);
+    res.status(500).json({ error: 'Unable to fetch post' });
   }
 });

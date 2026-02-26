@@ -1,12 +1,7 @@
-<<<<<<< ours
-import { google } from "googleapis";
-import type { sheets_v4 } from "googleapis";
-import type { Post } from "../types/post.js";
-=======
 import { google } from 'googleapis';
 import type { sheets_v4 } from 'googleapis';
 import type { Post } from '../types/post.js';
->>>>>>> theirs
+import { REQUIRED_HEADERS } from '../types/post.js';
 
 const CACHE_TTL_MS = 45_000;
 
@@ -17,20 +12,12 @@ type CacheState = {
 
 const cache: CacheState = {
   posts: [],
-<<<<<<< ours
   expiresAt: 0,
-=======
-  expiresAt: 0
->>>>>>> theirs
 };
 
 const normalizeDate = (value: string): string => {
   if (!value) {
-<<<<<<< ours
-    return "";
-=======
     return '';
->>>>>>> theirs
   }
 
   const parsed = new Date(value);
@@ -41,28 +28,23 @@ const normalizeDate = (value: string): string => {
   return parsed.toISOString();
 };
 
-const toPost = (headers: string[], row: string[]): Post => {
-<<<<<<< ours
-  const mapped = headers.reduce<Record<string, string>>(
-    (acc, header, index) => {
-      acc[header] = row[index] ?? "";
-      return acc;
-    },
-    {},
-  );
+const sanitizeTrustedHtml = (value: string): string => {
+  return value
+    .replace(/<script[\s\S]*?>[\s\S]*?<\/script>/gi, '')
+    .replace(/<style[\s\S]*?>[\s\S]*?<\/style>/gi, '')
+    .replace(/<(iframe|object|embed|link|meta)[^>]*?>/gi, '')
+    .replace(/\son\w+=(?:"[^"]*"|'[^']*'|[^\s>]+)/gi, '')
+    .replace(/\s(href|src)\s*=\s*(['"])javascript:[^'"]*\2/gi, ' $1="#"');
+};
 
-  return {
-    slug: mapped.slug ?? "",
-    title: mapped.title ?? "",
-    metaDescription: mapped.metaDescription ?? "",
-    heroImageUrl: mapped.heroImageUrl ?? "",
-    heroImageAlt: mapped.heroImageAlt ?? "",
-    category: mapped.category ?? "",
-    tags: mapped.tags ?? "",
-    publishedAt: normalizeDate(mapped.publishedAt ?? ""),
-    author: mapped.author ?? "",
-    contentHtml: mapped.contentHtml ?? "",
-=======
+const validateHeaders = (headers: string[]): void => {
+  const missingHeaders = REQUIRED_HEADERS.filter((header) => !headers.includes(header));
+  if (missingHeaders.length > 0) {
+    throw new Error(`Missing required sheet headers: ${missingHeaders.join(', ')}`);
+  }
+};
+
+const toPost = (headers: string[], row: string[]): Post => {
   const mapped = headers.reduce<Record<string, string>>((acc, header, index) => {
     acc[header] = row[index] ?? '';
     return acc;
@@ -78,87 +60,88 @@ const toPost = (headers: string[], row: string[]): Post => {
     tags: mapped.tags ?? '',
     publishedAt: normalizeDate(mapped.publishedAt ?? ''),
     author: mapped.author ?? '',
-    contentHtml: mapped.contentHtml ?? ''
->>>>>>> theirs
+    contentHtml: sanitizeTrustedHtml(mapped.contentHtml ?? ''),
   };
 };
 
 const comparePublishedAtDesc = (a: Post, b: Post): number => {
   const first = new Date(a.publishedAt).getTime();
   const second = new Date(b.publishedAt).getTime();
-<<<<<<< ours
-  return (
-    (Number.isNaN(second) ? 0 : second) - (Number.isNaN(first) ? 0 : first)
-  );
-=======
   return (Number.isNaN(second) ? 0 : second) - (Number.isNaN(first) ? 0 : first);
->>>>>>> theirs
+};
+
+const dedupePostsBySlug = (posts: Post[]): Post[] => {
+  const seenSlugs = new Set<string>();
+  const uniquePosts: Post[] = [];
+
+  for (const post of posts) {
+    if (seenSlugs.has(post.slug)) {
+      console.warn(`Duplicate slug "${post.slug}" found in sheet. Keeping latest row only.`);
+      continue;
+    }
+
+    seenSlugs.add(post.slug);
+    uniquePosts.push(post);
+  }
+
+  return uniquePosts;
+};
+
+const parseInlineServiceAccount = (): Record<string, unknown> | undefined => {
+  const rawServiceAccount = process.env.GOOGLE_SERVICE_ACCOUNT_KEY;
+  if (!rawServiceAccount) {
+    return undefined;
+  }
+
+  try {
+    return JSON.parse(rawServiceAccount) as Record<string, unknown>;
+  } catch {
+    throw new Error('GOOGLE_SERVICE_ACCOUNT_KEY must be valid JSON');
+  }
 };
 
 const getSheetsClient = (): sheets_v4.Sheets => {
-  const rawServiceAccount = process.env.GOOGLE_SERVICE_ACCOUNT_KEY;
-  const auth = new google.auth.GoogleAuth({
-    credentials: rawServiceAccount ? JSON.parse(rawServiceAccount) : undefined,
-<<<<<<< ours
-    scopes: ["https://www.googleapis.com/auth/spreadsheets.readonly"],
-  });
+  if (!process.env.GOOGLE_SERVICE_ACCOUNT_KEY && !process.env.GOOGLE_APPLICATION_CREDENTIALS) {
+    throw new Error('Set GOOGLE_SERVICE_ACCOUNT_KEY or GOOGLE_APPLICATION_CREDENTIALS');
+  }
 
-  return google.sheets({ version: "v4", auth });
-=======
-    scopes: ['https://www.googleapis.com/auth/spreadsheets.readonly']
+  const auth = new google.auth.GoogleAuth({
+    credentials: parseInlineServiceAccount(),
+    scopes: ['https://www.googleapis.com/auth/spreadsheets.readonly'],
   });
 
   return google.sheets({ version: 'v4', auth });
->>>>>>> theirs
 };
 
 const fetchPostsFromSheet = async (): Promise<Post[]> => {
   const spreadsheetId = process.env.SPREADSHEET_ID;
-<<<<<<< ours
-  const sheetName = process.env.SHEET_NAME ?? "Posts";
-
-  if (!spreadsheetId) {
-    throw new Error("SPREADSHEET_ID is required");
-=======
   const sheetName = process.env.SHEET_NAME ?? 'Posts';
 
   if (!spreadsheetId) {
     throw new Error('SPREADSHEET_ID is required');
->>>>>>> theirs
   }
 
   const sheets = getSheetsClient();
-  const range = `${sheetName}!A:J`;
   const response = await sheets.spreadsheets.values.get({
     spreadsheetId,
-<<<<<<< ours
-    range,
-=======
-    range
->>>>>>> theirs
+    range: `${sheetName}!A1:ZZ`,
   });
 
-  const values = response.data.values ?? [];
+  const values = (response.data.values ?? []) as unknown[][];
   if (values.length === 0) {
     return [];
   }
 
   const [headerRow, ...rows] = values;
-  const headers = headerRow.map((header) => String(header).trim());
+  const headers = headerRow.map((header: unknown) => String(header).trim().replace(/^\uFEFF/, ''));
+  validateHeaders(headers);
 
-  return rows
-<<<<<<< ours
-    .map((row) =>
-      toPost(
-        headers,
-        row.map((cell) => String(cell ?? "")),
-      ),
-    )
-=======
-    .map((row) => toPost(headers, row.map((cell) => String(cell ?? ''))))
->>>>>>> theirs
-    .filter((post) => post.slug && post.title)
-    .sort(comparePublishedAtDesc);
+  return dedupePostsBySlug(
+    rows
+      .map((row: unknown[]) => toPost(headers, row.map((cell: unknown) => String(cell ?? ''))))
+      .filter((post) => post.slug && post.title)
+      .sort(comparePublishedAtDesc),
+  );
 };
 
 export const getAllPosts = async (): Promise<Post[]> => {

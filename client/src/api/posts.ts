@@ -1,6 +1,6 @@
 import type { Post } from "../types/post";
 
-const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:4000";
+const API_URL = (import.meta.env.VITE_API_URL ?? "http://localhost:4000").replace(/\/$/, "");
 
 const handleResponse = async <T>(response: Response): Promise<T> => {
   if (!response.ok) {
@@ -18,7 +18,7 @@ export const fetchPosts = async (): Promise<Post[]> => {
 };
 
 export const fetchPostBySlug = async (slug: string): Promise<Post> => {
-  const response = await fetch(`${API_URL}/api/posts/${slug}`);
+  const response = await fetch(`${API_URL}/api/posts/${encodeURIComponent(slug)}`);
   const data = await handleResponse<{ post: Post }>(response);
   return data.post;
 };
