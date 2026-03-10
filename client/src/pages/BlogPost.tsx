@@ -24,7 +24,7 @@ export const BlogPost = () => {
     return (
       <main>
         <p>Failed to load post: {(error as Error).message}</p>
-        <Link to="/">Back to all posts</Link>
+        <Link to="/blog">Back to all posts</Link>
       </main>
     );
   }
@@ -69,7 +69,7 @@ export const BlogPost = () => {
       </section>
 
       <p>
-        <Link to="/">← Back to all posts</Link>
+        <Link to="/blog">← Back to all posts</Link>
       </p>
     </main>
   );
