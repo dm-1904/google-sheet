@@ -1,0 +1,31 @@
+.site-layout {
+  margin: 0 auto;
+  max-width: 900px;
+  padding: 1rem;
+  font-family: Arial, sans-serif;
+}
+
+.site-layout__header {
+  margin-bottom: 1.5rem;
+}
+
+.site-layout__title {
+  margin-bottom: 0.75rem;
+}
+
+.site-layout__nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.site-layout__nav-link {
+  color: #2f2f2f;
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.site-layout__nav-link--active {
+  color: #1f4ea5;
+  font-weight: 700;
+}

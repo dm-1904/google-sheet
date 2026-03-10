@@ -1,0 +1,23 @@
+.post-card {
+  border: 1px solid #d9d9d9;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.post-card__image {
+  width: 180px;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 4px;
+}
+
+.post-card__meta {
+  margin-top: 8px;
+  margin-bottom: 4px;
+  color: #666;
+}
+
+.post-card__title {
+  margin-top: 0;
+}

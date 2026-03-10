@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Helmet } from 'react-helmet-async';
 import { Link, useParams } from 'react-router-dom';
 import { fetchPostBySlug } from '../api/posts';
+import '../css/BlogPost.css';
 
 export const BlogPost = () => {
   const { slug } = useParams();
@@ -52,11 +53,7 @@ export const BlogPost = () => {
       </header>
 
       {data.heroImageUrl ? (
-        <img
-          src={data.heroImageUrl}
-          alt={data.heroImageAlt || data.title}
-          style={{ width: '100%', maxWidth: 720, borderRadius: 8 }}
-        />
+        <img src={data.heroImageUrl} alt={data.heroImageAlt || data.title} className="blog-post__hero-image" />
       ) : null}
 
       <section>

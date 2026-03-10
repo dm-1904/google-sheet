@@ -1,0 +1,5 @@
+.blog-post__hero-image {
+  width: 100%;
+  max-width: 720px;
+  border-radius: 8px;
+}
