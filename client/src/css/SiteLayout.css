@@ -41,13 +41,14 @@ body,
 }
 
 .nav-logo-img {
-  width: min(40%, 430px);
+  /* width: min(40%, 430px); */
+  width: 55%;
   max-width: 100%;
   height: auto;
 }
 
 .presented-by {
-  width: 100%;
+  width: 70%;
   height: auto;
   margin-top: 10px;
   object-fit: contain;
@@ -59,7 +60,8 @@ body,
 }
 
 .damon-picture {
-  width: clamp(44px, 7vw, 84px);
+  /* width: clamp(44px, 7vw, 84px); */
+  width: 10vw;
   height: auto;
   border-radius: 15%;
   object-fit: cover;
