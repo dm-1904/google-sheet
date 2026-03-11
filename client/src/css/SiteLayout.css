@@ -97,7 +97,7 @@ body,
 .site-layout__content {
   width: min(1200px, 100%);
   margin: 0 auto;
-  padding: 1rem;
+  /* padding: 1rem; */
 }
 
 @media (max-width: 768px) {

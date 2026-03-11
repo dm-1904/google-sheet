@@ -1,0 +1,177 @@
+.app-container {
+  width: 100%;
+}
+
+.hero {
+  position: relative;
+  background-image:
+    linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)),
+    url("/arizona-home-1.jpg");
+  background-size: cover;
+  background-position: center;
+  height: 80vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hero::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.01);
+  z-index: 1;
+}
+
+.hero-content {
+  position: relative;
+  z-index: 2;
+  width: min(1100px, 94vw);
+  color: white;
+  text-align: left;
+}
+
+.hero-title {
+  font-size: clamp(1.1rem, 2.2vw, 1.8rem);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-bottom: 1rem;
+}
+
+.form-box,
+.form-container {
+  width: 100%;
+}
+
+.buy-or-sell {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  font-size: 0.7rem;
+  gap: 1rem;
+}
+
+.buy-a-home {
+  text-decoration: underline;
+  text-underline-offset: 7px;
+}
+
+.sell-a-home {
+  text-decoration: none;
+  display: block;
+  font-size: 1rem;
+  margin-block-start: 0.83em;
+  margin-block-end: 0.83em;
+  margin-inline-start: 0;
+  margin-inline-end: 0;
+  font-weight: bold;
+  color: white;
+}
+
+.search-form {
+  display: flex;
+  align-items: center;
+  background-color: white;
+  /* border-radius: 4px; */
+  overflow: hidden;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  flex-wrap: wrap;
+}
+
+.search-city,
+.search-min-price,
+.search-max-price,
+.search-beds,
+.search-baths {
+  border: none;
+  padding: 0.5rem;
+  font-size: 1rem;
+  min-width: 80px;
+  flex: 1;
+  border-right: 1px solid #ddd;
+  background: white;
+}
+
+.search-city::placeholder,
+.search-min-price::placeholder,
+.search-max-price::placeholder {
+  color: #555;
+}
+
+.search-city:focus,
+.search-min-price:focus,
+.search-max-price:focus,
+.search-beds:focus,
+.search-baths:focus {
+  outline: none; /* Removes the default focus outline */
+  box-shadow: none; /* Optional: Removes any focus box-shadow */
+}
+
+.search-beds,
+.search-baths {
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg width='10' height='6' viewBox='0 0 10 6' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23333' stroke-width='1.5' fill='none' fill-rule='evenodd'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 1rem center;
+  background-size: 0.65rem;
+}
+
+.search-button {
+  background-color: black;
+  color: white;
+  padding: 0.5rem 1.5rem;
+  font-weight: bold;
+  font-size: 1rem;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.search-button:hover {
+  background-color: #333;
+}
+
+.search-feedback {
+  margin: 1rem;
+  font-size: 0.95rem;
+  color: #222;
+}
+
+@media (max-width: 900px) {
+  .hero {
+    height: auto;
+    min-height: 55vh;
+    padding: 2.25rem 0.75rem;
+  }
+
+  .hero-title {
+    text-align: center;
+  }
+
+  .buy-or-sell {
+    justify-content: center;
+  }
+
+  .search-form {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .search-city,
+  .search-min-price,
+  .search-max-price,
+  .search-beds,
+  .search-baths {
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid #ddd;
+  }
+
+  .search-button {
+    width: 100%;
+    padding: 0.85rem 1rem;
+  }
+}
