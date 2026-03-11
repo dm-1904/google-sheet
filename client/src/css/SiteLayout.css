@@ -95,9 +95,10 @@ body,
 }
 
 .site-layout__content {
-  width: min(1200px, 100%);
-  margin: 0 auto;
+  /* width: min(1200px, 100%); */
+  /* margin: 0 auto; */
   /* padding: 1rem; */
+  width: 100vw;
 }
 
 @media (max-width: 768px) {
