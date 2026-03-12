@@ -1,30 +1,34 @@
 import { Link } from 'react-router-dom';
-import type { Post } from '../types/post';
+import type { SeoArticleIndexItem } from '../types/post';
 import '../css/PostCard.css';
 
 type Props = {
-  post: Post;
+  post: SeoArticleIndexItem;
 };
 
 export const PostCard = ({ post }: Props) => {
-  const date = post.publishedAt ? new Date(post.publishedAt).toLocaleDateString() : 'Unknown date';
+  const dateValue = post.publish_date || post.update_date;
+  const date = dateValue ? new Date(dateValue).toLocaleDateString() : 'Unknown date';
+  const title = post.h1 || post.title_tag || post.slug;
+  const summary = post.intro_lede || post.meta_description;
+  const href = `/blog/${post.slug}`;
 
   return (
     <article className="post-card">
-      {post.heroImageUrl ? (
+      {post.featured_image_url ? (
         <img
-          src={post.heroImageUrl}
-          alt={post.heroImageAlt || post.title}
+          src={post.featured_image_url}
+          alt={post.featured_image_alt || title}
           className="post-card__image"
         />
       ) : null}
       <p className="post-card__meta">
-        {post.category || 'Uncategorized'} · {date}
+        {(post.category_slug || 'Uncategorized').toString()} · {date}
       </p>
       <h2 className="post-card__title">
-        <Link to={`/blog/${post.slug}`}>{post.title}</Link>
+        <Link to={href}>{title}</Link>
       </h2>
-      <p>{post.metaDescription}</p>
+      <p>{summary}</p>
     </article>
   );
 };

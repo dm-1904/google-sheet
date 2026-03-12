@@ -2,7 +2,29 @@ import { useQuery } from '@tanstack/react-query';
 import { Helmet } from 'react-helmet-async';
 import { Link, useParams } from 'react-router-dom';
 import { fetchPostBySlug } from '../api/posts';
+import {
+  buildStructuredData,
+  getCanonicalUrl,
+  getRobotsMetaContent,
+  parseBreadcrumbItems,
+  parseInternalLinks,
+} from '../lib/structuredData';
+import type { SeoArticle } from '../types/post';
 import '../css/BlogPost.css';
+
+const formatDate = (value?: string): string => {
+  if (!value) {
+    return 'Unknown date';
+  }
+  const parsed = new Date(value);
+  return Number.isNaN(parsed.getTime()) ? value : parsed.toLocaleDateString();
+};
+
+const getDisplayTitle = (article: SeoArticle): string => {
+  return article.h1 || article.title_tag || article.slug;
+};
+
+const isExternalUrl = (value: string): boolean => /^https?:\/\//i.test(value);
 
 export const BlogPost = () => {
   const { slug } = useParams();
@@ -34,36 +56,91 @@ export const BlogPost = () => {
     return <p>Post not found.</p>;
   }
 
-  const publishedAt = data.publishedAt ? new Date(data.publishedAt).toLocaleDateString() : 'Unknown date';
+  const title = getDisplayTitle(data);
+  const canonicalUrl = getCanonicalUrl(data);
+  const robotsContent = getRobotsMetaContent(data);
+  const publishedAt = formatDate(data.publish_date);
+  const updatedAt = formatDate(data.update_date);
+  const internalLinks = parseInternalLinks(data.internal_links_json);
+  const breadcrumbItems = parseBreadcrumbItems(data.breadcrumb_json);
+  const breadcrumbs =
+    breadcrumbItems.length > 0
+      ? breadcrumbItems
+      : [
+          { name: 'Home', url: '/' },
+          { name: 'Blog', url: '/blog' },
+          { name: title, url: `/blog/${data.slug}` },
+        ];
 
   return (
-    <main>
+    <main className="blog-post">
       <Helmet>
-        <title>{data.title}</title>
-        <meta name="description" content={data.metaDescription || data.title} />
+        <title>{data.title_tag || title}</title>
+        <meta name="description" content={data.meta_description || title} />
+        <meta name="robots" content={robotsContent} />
+        <link rel="canonical" href={canonicalUrl} />
+        {buildStructuredData(data).map((schema, index) => (
+          <script key={`schema-${index}`} type="application/ld+json">
+            {JSON.stringify(schema)}
+          </script>
+        ))}
       </Helmet>
-      <header>
-        <h1>{data.title}</h1>
-        <p>
-          <strong>Author:</strong> {data.author || 'Unknown'}
-        </p>
-        <p>
-          <strong>Published:</strong> {publishedAt}
+
+      <nav aria-label="Breadcrumb">
+        <ol className="blog-post__breadcrumbs">
+          {breadcrumbs.map((item, index) => (
+            <li key={`${item.name}-${index}`}>
+              {index < breadcrumbs.length - 1 ? (
+                isExternalUrl(item.url) ? (
+                  <a href={item.url}>{item.name}</a>
+                ) : (
+                  <Link to={item.url}>{item.name}</Link>
+                )
+              ) : (
+                item.name
+              )}
+            </li>
+          ))}
+        </ol>
+      </nav>
+
+      <header className="blog-post__header">
+        <h1>{title}</h1>
+        <p className="blog-post__meta">
+          Published: {publishedAt}
+          {data.update_date ? ` · Updated: ${updatedAt}` : ''}
+          {data.primary_city || data.primary_state
+            ? ` · ${[data.primary_city, data.primary_state].filter(Boolean).join(', ')}`
+            : ''}
         </p>
       </header>
 
-      {data.heroImageUrl ? (
-        <img src={data.heroImageUrl} alt={data.heroImageAlt || data.title} className="blog-post__hero-image" />
+      {data.featured_image_url ? (
+        <img
+          src={data.featured_image_url}
+          alt={data.featured_image_alt || title}
+          className="blog-post__hero-image"
+        />
       ) : null}
 
-      <section>
-        <h2>Article</h2>
-        {/*
-          SECURITY: this uses trusted HTML from your private Google Sheet.
-          Never render untrusted user content with dangerouslySetInnerHTML.
-        */}
-        <div dangerouslySetInnerHTML={{ __html: data.contentHtml ?? '' }} />
+      {data.intro_lede ? <p className="blog-post__lede">{data.intro_lede}</p> : null}
+
+      <section className="blog-post__content">
+        <div dangerouslySetInnerHTML={{ __html: data.content_body }} />
       </section>
+
+      {internalLinks.length > 0 ? (
+        <section className="blog-post__internal-links">
+          <h2>Related Internal Links</h2>
+          <ul>
+            {internalLinks.map((item, index) => (
+              <li key={`${item.url}-${index}`}>
+                <a href={item.url}>{item.anchor}</a>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
 
       <p>
         <Link to="/blog">← Back to all posts</Link>

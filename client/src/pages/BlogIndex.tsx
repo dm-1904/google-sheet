@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { fetchPosts } from '../api/posts';
 import { PostCard } from '../components/PostCard';
-import type { Post } from '../types/post';
+import type { SeoArticleIndexItem } from '../types/post';
 
 export const BlogIndex = () => {
   const { data, isLoading, isError, error } = useQuery({
@@ -22,7 +22,7 @@ export const BlogIndex = () => {
       <h1>SEO Blog Posts</h1>
       <p>Content is fetched from a Google Sheet via the API server.</p>
       {data && data.length > 0 ? (
-        data.map((post: Post) => (
+        data.map((post: SeoArticleIndexItem) => (
           <PostCard key={post.slug} post={post} />
         ))
       ) : (

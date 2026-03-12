@@ -1,16 +1,13 @@
 import { Router } from 'express';
 import type { Request, Response } from 'express';
-import { getAllPosts, getPostBySlug } from '../services/sheetsCms.js';
+import { getPostBySlug, getPostIndex } from '../services/sheetsCms.js';
 
 export const postsRouter = Router();
 
 postsRouter.get('/', async (_req: Request, res: Response) => {
   try {
-    const posts = await getAllPosts();
-
-    // Index payload excludes contentHtml to reduce payload size.
-    const indexPosts = posts.map(({ contentHtml, ...post }) => post);
-    res.json({ posts: indexPosts });
+    const posts = await getPostIndex();
+    res.json({ posts });
   } catch (error) {
     console.error('Unable to fetch posts:', error);
     res.status(500).json({ error: 'Unable to fetch posts' });

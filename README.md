@@ -22,20 +22,24 @@ npm install
 ```bash
 SERVER_PORT=4000
 CLIENT_ORIGIN=http://localhost:5173
-SPREADSHEET_ID=your_spreadsheet_id_here
-SHEET_NAME=Posts
+SITE_BASE_URL=http://localhost:5173
+GOOGLE_SHEETS_SPREADSHEET_ID=NEW_GOOGLE_SHEET_ID
+GOOGLE_SHEETS_TAB_NAME=Content
+GOOGLE_SHEETS_RANGE=A1:ZZ
 
 # Option 1: inline JSON key
 # GOOGLE_SERVICE_ACCOUNT_KEY={"type":"service_account",...}
 
 # Option 2: file path (recommended for local dev)
-GOOGLE_APPLICATION_CREDENTIALS=/absolute/path/to/service-account.json
+GOOGLE_APPLICATION_CREDENTIALS=/absolute/path/to/new-service-account.json
 ```
 
 ### Client (`client/.env`)
 
 ```bash
 VITE_API_URL=http://localhost:4000
+VITE_SITE_URL=http://localhost:5173
+VITE_SITE_NAME=Desert Valley Home Search
 ```
 
 ## Run
@@ -67,10 +71,13 @@ npm run build
 
 ## Google Sheet Header Row
 
-Tab name defaults to `Posts`. Header row must include:
+Tab name defaults to `Content`. Header row must include at least:
 
 ```text
-slug | title | metaDescription | heroImageUrl | heroImageAlt | category | tags | publishedAt | author | contentHtml
+status | slug | title_tag | meta_description | content_body
 ```
 
-Rows missing `slug` or `title` are ignored.
+The app now supports the SEO-first schema fields listed in:
+- `GOOGLE_SHEETS_MIGRATION.md`
+
+Rows without `slug`, `title_tag`, `meta_description`, or `content_body` are ignored.
