@@ -110,6 +110,191 @@ const plainTextToHtml = (value: string): string => {
     .join('\n');
 };
 
+const sanitizeLinkUrl = (rawUrl: string): string => {
+  const trimmed = rawUrl.trim();
+  if (!trimmed) {
+    return '#';
+  }
+
+  if (/^https?:\/\//i.test(trimmed) || trimmed.startsWith('/')) {
+    return trimmed;
+  }
+
+  return '#';
+};
+
+const renderInlineMarkdown = (value: string): string => {
+  let output = escapeHtml(value);
+
+  output = output.replace(/`([^`]+)`/g, '<code>$1</code>');
+  output = output.replace(
+    /\[([^\]]+)\]\(([^)]+)\)/g,
+    (_match, label: string, url: string) => `<a href="${sanitizeLinkUrl(url)}">${label}</a>`,
+  );
+  output = output.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+  output = output.replace(/\*([^*]+)\*/g, '<em>$1</em>');
+  output = output.replace(/_([^_]+)_/g, '<em>$1</em>');
+
+  return output;
+};
+
+const normalizeInlineHeadingMarkdown = (value: string): string => {
+  if (value.includes('\n') || !value.includes('## ')) {
+    return value;
+  }
+
+  const sections = value
+    .split(/\s(?=##\s)/)
+    .map((section) => section.trim())
+    .filter(Boolean);
+
+  if (sections.length <= 1) {
+    return value;
+  }
+
+  const sentenceStarterWords = [
+    'The',
+    'One',
+    'Many',
+    'Several',
+    'Some',
+    'For',
+    'Residents',
+    'Families',
+    'Outdoor',
+    'Other',
+  ];
+
+  const starterPattern = new RegExp(
+    `^(.+?)\\s+(${sentenceStarterWords.join('|')})\\b([\\s\\S]*)$`,
+  );
+
+  return sections
+    .map((section) => {
+      const body = section.replace(/^##\s*/, '').trim();
+      if (!body) {
+        return '';
+      }
+
+      const questionMatch = /^(.+?\?)\s+(.+)$/.exec(body);
+      if (questionMatch) {
+        return `## ${questionMatch[1].trim()}\n\n${questionMatch[2].trim()}`;
+      }
+
+      const starterMatch = starterPattern.exec(body);
+      if (starterMatch && starterMatch[1].trim().split(/\s+/).length >= 3) {
+        const heading = starterMatch[1].trim();
+        const paragraph = `${starterMatch[2]}${starterMatch[3]}`.trim();
+        return paragraph ? `## ${heading}\n\n${paragraph}` : `## ${heading}`;
+      }
+
+      const isSentenceMatch = /^(.+?)\s+([A-Z][a-z]+)\s+is\s+(.+)$/.exec(body);
+      if (isSentenceMatch && isSentenceMatch[1].trim().split(/\s+/).length >= 3) {
+        const heading = isSentenceMatch[1].trim();
+        const paragraph = `${isSentenceMatch[2]} is ${isSentenceMatch[3]}`.trim();
+        return `## ${heading}\n\n${paragraph}`;
+      }
+
+      return `## ${body}`;
+    })
+    .filter(Boolean)
+    .join('\n\n');
+};
+
+const markdownToHtml = (value: string): string => {
+  const normalizedInput = normalizeInlineHeadingMarkdown(value).replace(/\r\n/g, '\n');
+  const lines = normalizedInput.split('\n');
+  const html: string[] = [];
+
+  let inUnorderedList = false;
+  let inOrderedList = false;
+  let paragraphBuffer: string[] = [];
+
+  const flushParagraph = () => {
+    if (paragraphBuffer.length === 0) {
+      return;
+    }
+    const paragraph = paragraphBuffer.map((line) => renderInlineMarkdown(line)).join('<br />');
+    html.push(`<p>${paragraph}</p>`);
+    paragraphBuffer = [];
+  };
+
+  const closeLists = () => {
+    if (inUnorderedList) {
+      html.push('</ul>');
+      inUnorderedList = false;
+    }
+    if (inOrderedList) {
+      html.push('</ol>');
+      inOrderedList = false;
+    }
+  };
+
+  for (const rawLine of lines) {
+    const line = rawLine.trim();
+
+    if (!line) {
+      flushParagraph();
+      closeLists();
+      continue;
+    }
+
+    const headingMatch = /^(#{1,6})\s+(.+)$/.exec(line);
+    if (headingMatch) {
+      flushParagraph();
+      closeLists();
+      const level = headingMatch[1].length;
+      html.push(`<h${level}>${renderInlineMarkdown(headingMatch[2])}</h${level}>`);
+      continue;
+    }
+
+    const unorderedListMatch = /^[-*]\s+(.+)$/.exec(line);
+    if (unorderedListMatch) {
+      flushParagraph();
+      if (inOrderedList) {
+        html.push('</ol>');
+        inOrderedList = false;
+      }
+      if (!inUnorderedList) {
+        html.push('<ul>');
+        inUnorderedList = true;
+      }
+      html.push(`<li>${renderInlineMarkdown(unorderedListMatch[1])}</li>`);
+      continue;
+    }
+
+    const orderedListMatch = /^\d+\.\s+(.+)$/.exec(line);
+    if (orderedListMatch) {
+      flushParagraph();
+      if (inUnorderedList) {
+        html.push('</ul>');
+        inUnorderedList = false;
+      }
+      if (!inOrderedList) {
+        html.push('<ol>');
+        inOrderedList = true;
+      }
+      html.push(`<li>${renderInlineMarkdown(orderedListMatch[1])}</li>`);
+      continue;
+    }
+
+    const blockquoteMatch = /^>\s+(.+)$/.exec(line);
+    if (blockquoteMatch) {
+      flushParagraph();
+      closeLists();
+      html.push(`<blockquote>${renderInlineMarkdown(blockquoteMatch[1])}</blockquote>`);
+      continue;
+    }
+
+    paragraphBuffer.push(line);
+  }
+
+  flushParagraph();
+  closeLists();
+
+  return html.join('\n');
+};
+
 const toSafeRenderableHtml = (value: string): string => {
   const trimmed = value.trim();
   if (!trimmed) {
@@ -117,7 +302,7 @@ const toSafeRenderableHtml = (value: string): string => {
   }
 
   const looksLikeHtml = /<\/?[a-z][\s\S]*>/i.test(trimmed);
-  return looksLikeHtml ? sanitizeTrustedHtml(trimmed) : plainTextToHtml(trimmed);
+  return looksLikeHtml ? sanitizeTrustedHtml(trimmed) : markdownToHtml(trimmed);
 };
 
 const isPublishedStatus = (status: string): boolean => {
