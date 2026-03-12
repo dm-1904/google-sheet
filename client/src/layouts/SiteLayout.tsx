@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
+import { Footer } from '../components/Footer';
 import '../css/SiteLayout.css';
 
 interface NavItem {
@@ -88,6 +89,7 @@ export const SiteLayout = () => {
       <main className="site-layout__content">
         <Outlet />
       </main>
+      <Footer />
     </div>
   );
 };

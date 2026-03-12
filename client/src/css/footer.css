@@ -1,0 +1,130 @@
+.footer {
+  background: #e9edf1;
+  font-family: 'Lato', system-ui, sans-serif;
+  color: #1f2933;
+  padding: 3rem 2rem 2rem;
+}
+
+.footer-underline {
+  display: block;
+  width: 100%;
+  height: 4px;
+  background: #9ea3a8;
+}
+
+.footer-content {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2.25rem;
+  max-width: 1600px;
+  margin: 0 auto;
+}
+
+.footer-menu {
+  font-size: 1.15rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.footer-menu + .footer-menu {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2.5rem;
+  margin-top: 0.75rem;
+}
+
+.footer-menu-item {
+  display: inline-flex;
+  align-items: center;
+}
+
+.footer-menu .nav-link {
+  width: auto;
+  text-align: left;
+}
+
+.footer-logo {
+  margin-top: 1rem;
+}
+
+.footer-broker-logo {
+  width: 300px;
+}
+
+.ryon-group-logo img {
+  width: 300px;
+}
+
+.broker-address {
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+.footer-realtor-logos {
+  display: flex;
+  gap: 1.2rem;
+  margin-top: 1rem;
+  align-items: center;
+}
+
+.footer-equal-housing-logo {
+  width: 110px;
+  height: 110px;
+}
+
+.footer-mls-logo {
+  width: 110px;
+  height: auto;
+}
+
+.footer-disc {
+  margin-top: 1.5rem;
+  display: flex;
+  gap: 2rem;
+  flex-wrap: wrap;
+}
+
+.footer-disc a {
+  text-decoration: none;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: #4c5762;
+}
+
+.footer-disc a:hover {
+  color: #000;
+}
+
+.footer-disc-statement {
+  max-width: 1600px;
+  margin: 0 auto 60px;
+}
+
+.footer-disc-statement p {
+  font-size: 0.85rem;
+  line-height: 1.55;
+  color: #3f4851;
+  margin: 20px;
+}
+
+@media (max-width: 700px) {
+  .footer-menu .nav-link {
+    width: auto;
+    padding: 0.4rem 0.5rem;
+    text-align: left;
+  }
+
+  .footer-menu + .footer-menu {
+    gap: 1.25rem;
+  }
+
+  .footer-realtor-logos {
+    flex-wrap: wrap;
+  }
+
+  .footer-disc {
+    gap: 1rem;
+  }
+}
