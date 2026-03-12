@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import type { SeoArticleIndexItem } from '../types/post';
 import '../css/PostCard.css';
+import { formatCategoryLabel } from '../lib/category';
 
 type Props = {
   post: SeoArticleIndexItem;
@@ -12,6 +13,7 @@ export const PostCard = ({ post }: Props) => {
   const title = post.h1 || post.title_tag || post.slug;
   const summary = post.intro_lede || post.meta_description;
   const href = `/blog/${post.slug}`;
+  const categoryLabel = formatCategoryLabel(post.category_slug);
 
   return (
     <article className="post-card">
@@ -23,7 +25,7 @@ export const PostCard = ({ post }: Props) => {
         />
       ) : null}
       <p className="post-card__meta">
-        {(post.category_slug || 'Uncategorized').toString()} · {date}
+        <span className="post-card__category">{categoryLabel}</span> · {date}
       </p>
       <h2 className="post-card__title">
         <Link to={href}>{title}</Link>

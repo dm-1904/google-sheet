@@ -87,17 +87,40 @@ export const parseInternalLinks = (raw?: string): InternalLinkItem[] => {
     return [];
   }
 
+  const toAnchorFromUrl = (url: string): string => {
+    const cleaned = url.trim().replace(/^https?:\/\/[^/]+/i, '');
+    const lastSegment = cleaned.split('/').filter(Boolean).pop() ?? cleaned;
+    const text = lastSegment.replace(/[-_]+/g, ' ').trim();
+    if (!text) {
+      return 'Related Link';
+    }
+    return text
+      .split(' ')
+      .filter(Boolean)
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
+  };
+
   const links: InternalLinkItem[] = [];
   parsed.forEach((item) => {
+    if (typeof item === 'string') {
+      const url = item.trim();
+      if (!url) {
+        return;
+      }
+      links.push({ anchor: toAnchorFromUrl(url), url });
+      return;
+    }
+
     if (!item || typeof item !== 'object') {
       return;
     }
     const row = item as Record<string, unknown>;
-    const anchor = String(row.anchor ?? row.text ?? row.label ?? '').trim();
     const url = String(row.url ?? row.href ?? '').trim();
-    if (!anchor || !url) {
+    if (!url) {
       return;
     }
+    const anchor = String(row.anchor ?? row.text ?? row.label ?? '').trim() || toAnchorFromUrl(url);
     links.push({ anchor, url });
   });
 

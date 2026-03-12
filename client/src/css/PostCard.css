@@ -18,6 +18,11 @@
   color: #666;
 }
 
+.post-card__category {
+  font-weight: 600;
+  color: #314047;
+}
+
 .post-card__title {
   margin-top: 0;
 }
