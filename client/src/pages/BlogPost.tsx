@@ -12,6 +12,8 @@ import {
 import type { SeoArticle } from '../types/post';
 import '../css/BlogPost.css';
 
+const POST_AUTHOR_NAME = 'Damon Ryon';
+
 const formatDate = (value?: string): string => {
   if (!value) {
     return 'Unknown date';
@@ -106,6 +108,7 @@ export const BlogPost = () => {
 
       <header className="blog-post__header">
         <h1>{title}</h1>
+        <p className="blog-post__author">By {POST_AUTHOR_NAME}</p>
         <p className="blog-post__meta">
           Published: {publishedAt}
           {data.update_date ? ` · Updated: ${updatedAt}` : ''}

@@ -22,7 +22,15 @@
   margin-bottom: 1rem;
 }
 
+.blog-post__author {
+  margin: 0 0 0.35rem;
+  color: #314047;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
 .blog-post__meta {
+  margin: 0;
   color: #5f6b73;
   font-size: 0.95rem;
 }

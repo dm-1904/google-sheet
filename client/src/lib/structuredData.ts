@@ -17,6 +17,7 @@ type FaqItem = {
   answer: string;
 };
 
+const ARTICLE_AUTHOR_NAME = 'Damon Ryon';
 const siteBaseUrl = (import.meta.env.VITE_SITE_URL ?? '').trim().replace(/\/$/, '');
 
 const toAbsoluteUrl = (value: string): string => {
@@ -195,6 +196,10 @@ const buildArticleSchema = (article: SeoArticle, canonicalUrl: string): SchemaOb
     dateModified: article.update_date || article.publish_date || undefined,
     image: article.featured_image_url ? toAbsoluteUrl(article.featured_image_url) : undefined,
     articleSection: article.category_slug || undefined,
+    author: cleanObject({
+      '@type': 'Person',
+      name: ARTICLE_AUTHOR_NAME,
+    }),
   });
 };
 

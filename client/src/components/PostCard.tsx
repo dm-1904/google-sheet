@@ -17,20 +17,13 @@ export const PostCard = ({ post }: Props) => {
 
   return (
     <article className="post-card">
-      {post.featured_image_url ? (
-        <img
-          src={post.featured_image_url}
-          alt={post.featured_image_alt || title}
-          className="post-card__image"
-        />
-      ) : null}
       <p className="post-card__meta">
         <span className="post-card__category">{categoryLabel}</span> · {date}
       </p>
       <h2 className="post-card__title">
         <Link to={href}>{title}</Link>
       </h2>
-      <p>{summary}</p>
+      <p className="post-card__summary">{summary}</p>
     </article>
   );
 };
