@@ -1,4 +1,4 @@
-import type { SyntheticEvent } from 'react';
+import { memo, type SyntheticEvent } from 'react';
 import { Link } from 'react-router-dom';
 
 type GuideCardProps = {
@@ -18,7 +18,7 @@ const handleImageError = (event: SyntheticEvent<HTMLImageElement>) => {
   image.src = FALLBACK_GUIDE_IMAGE;
 };
 
-export const GuideCard = ({ title, description, imageSrc, to }: GuideCardProps) => {
+const GuideCardComponent = ({ title, description, imageSrc, to }: GuideCardProps) => {
   return (
     <Link to={to} className="guide-card" aria-label={`Open ${title} guide`}>
       <img
@@ -26,6 +26,8 @@ export const GuideCard = ({ title, description, imageSrc, to }: GuideCardProps) 
         src={imageSrc}
         alt={`${title} neighborhood guide`}
         onError={handleImageError}
+        loading="lazy"
+        decoding="async"
       />
       <div className="guide-card__body">
         <h3 className="guide-card__title">{title}</h3>
@@ -34,3 +36,5 @@ export const GuideCard = ({ title, description, imageSrc, to }: GuideCardProps) 
     </Link>
   );
 };
+
+export const GuideCard = memo(GuideCardComponent);

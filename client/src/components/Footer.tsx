@@ -51,6 +51,8 @@ export const Footer = () => {
               alt="Deal Landers Arizona Realty broker logo"
               className="footer-broker-logo"
               onError={hideImageOnError}
+              loading="lazy"
+              decoding="async"
             />
           </div>
 
@@ -67,7 +69,13 @@ export const Footer = () => {
           </div>
 
           <div className="ryon-group-logo">
-            <img src="/nav/ryon-group.png" alt="Ryon Group logo" onError={hideImageOnError} />
+            <img
+              src="/nav/ryon-group.png"
+              alt="Ryon Group logo"
+              onError={hideImageOnError}
+              loading="lazy"
+              decoding="async"
+            />
           </div>
 
           <div className="footer-realtor-logos">
@@ -76,12 +84,16 @@ export const Footer = () => {
               alt="Equal housing opportunity logo"
               className="footer-equal-housing-logo"
               onError={hideImageOnError}
+              loading="lazy"
+              decoding="async"
             />
             <img
               src="/MLS-clear.png"
               alt="MLS logo"
               className="footer-mls-logo"
               onError={hideImageOnError}
+              loading="lazy"
+              decoding="async"
             />
           </div>
 

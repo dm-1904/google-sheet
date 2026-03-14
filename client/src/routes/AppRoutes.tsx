@@ -1,16 +1,46 @@
+import { lazy } from 'react';
 import { Route, Routes } from 'react-router-dom';
 import { SiteLayout } from '../layouts/SiteLayout';
-import { AboutPage } from '../pages/AboutPage';
-import { BlogIndex } from '../pages/BlogIndex';
-import { BlogPost } from '../pages/BlogPost';
 import { HomePage } from '../pages/HomePage';
-import { LetsConnectPage } from '../pages/LetsConnectPage';
-import { NeighborhoodGuideDetailPage } from '../pages/NeighborhoodGuideDetailPage';
-import { NeighborhoodGuidesPage } from '../pages/NeighborhoodGuidesPage';
-import { NotFoundPage } from '../pages/NotFoundPage';
 import { PropertiesPage } from '../pages/PropertiesPage';
-import { RetirementCommunitiesPage } from '../pages/RetirementCommunitiesPage';
-import { RetirementCommunityDetailPage } from '../pages/RetirementCommunityDetailPage';
+
+const AboutPage = lazy(() =>
+  import('../pages/AboutPage').then(({ AboutPage }) => ({ default: AboutPage })),
+);
+const BlogIndex = lazy(() =>
+  import('../pages/BlogIndex').then(({ BlogIndex }) => ({ default: BlogIndex })),
+);
+const BlogPost = lazy(() =>
+  import('../pages/BlogPost').then(({ BlogPost }) => ({ default: BlogPost })),
+);
+const LetsConnectPage = lazy(() =>
+  import('../pages/LetsConnectPage').then(({ LetsConnectPage }) => ({
+    default: LetsConnectPage,
+  })),
+);
+const NeighborhoodGuideDetailPage = lazy(() =>
+  import('../pages/NeighborhoodGuideDetailPage').then(({ NeighborhoodGuideDetailPage }) => ({
+    default: NeighborhoodGuideDetailPage,
+  })),
+);
+const NeighborhoodGuidesPage = lazy(() =>
+  import('../pages/NeighborhoodGuidesPage').then(({ NeighborhoodGuidesPage }) => ({
+    default: NeighborhoodGuidesPage,
+  })),
+);
+const NotFoundPage = lazy(() =>
+  import('../pages/NotFoundPage').then(({ NotFoundPage }) => ({ default: NotFoundPage })),
+);
+const RetirementCommunitiesPage = lazy(() =>
+  import('../pages/RetirementCommunitiesPage').then(({ RetirementCommunitiesPage }) => ({
+    default: RetirementCommunitiesPage,
+  })),
+);
+const RetirementCommunityDetailPage = lazy(() =>
+  import('../pages/RetirementCommunityDetailPage').then(({ RetirementCommunityDetailPage }) => ({
+    default: RetirementCommunityDetailPage,
+  })),
+);
 
 export const AppRoutes = () => {
   return (

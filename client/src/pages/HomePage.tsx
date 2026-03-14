@@ -1,4 +1,5 @@
 import { ChangeEvent, FormEvent, useState } from 'react';
+import { Helmet } from 'react-helmet-async';
 import { Link } from 'react-router-dom';
 import '../css/HomePage.css';
 import '../css/ContactUs.css';
@@ -279,6 +280,9 @@ export const HomePage = () => {
 
   return (
     <div className="app-container">
+      <Helmet>
+        <link rel="preload" as="image" href="/arizona-home-1.jpg" />
+      </Helmet>
       <SearchForm onSearch={setLastSearch} />
       {lastSearch ? (
         <p className="search-feedback">

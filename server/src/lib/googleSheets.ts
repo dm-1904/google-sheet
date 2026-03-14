@@ -2,6 +2,7 @@ import { google } from 'googleapis';
 import type { sheets_v4 } from 'googleapis';
 
 const READONLY_SCOPE = 'https://www.googleapis.com/auth/spreadsheets.readonly';
+let sheetsClient: sheets_v4.Sheets | null = null;
 
 export type GoogleSheetsConfig = {
   spreadsheetId: string;
@@ -23,6 +24,10 @@ const parseInlineServiceAccount = (): Record<string, unknown> | undefined => {
 };
 
 const getSheetsClient = (): sheets_v4.Sheets => {
+  if (sheetsClient) {
+    return sheetsClient;
+  }
+
   if (!process.env.GOOGLE_SERVICE_ACCOUNT_KEY && !process.env.GOOGLE_APPLICATION_CREDENTIALS) {
     throw new Error('Set GOOGLE_SERVICE_ACCOUNT_KEY or GOOGLE_APPLICATION_CREDENTIALS');
   }
@@ -32,7 +37,8 @@ const getSheetsClient = (): sheets_v4.Sheets => {
     scopes: [READONLY_SCOPE],
   });
 
-  return google.sheets({ version: 'v4', auth });
+  sheetsClient = google.sheets({ version: 'v4', auth });
+  return sheetsClient;
 };
 
 export const getGoogleSheetsConfig = (): GoogleSheetsConfig => {
@@ -44,7 +50,7 @@ export const getGoogleSheetsConfig = (): GoogleSheetsConfig => {
   return {
     spreadsheetId,
     tabName: process.env.GOOGLE_SHEETS_TAB_NAME ?? 'Content',
-    range: process.env.GOOGLE_SHEETS_RANGE ?? 'A1:ZZ',
+    range: process.env.GOOGLE_SHEETS_RANGE ?? 'A1:V',
   };
 };
 
@@ -54,6 +60,8 @@ export const fetchSheetValues = async (): Promise<string[][]> => {
   const response = await sheets.spreadsheets.values.get({
     spreadsheetId,
     range: `${tabName}!${range}`,
+    majorDimension: 'ROWS',
+    valueRenderOption: 'FORMATTED_VALUE',
   });
 
   return (response.data.values ?? []).map((row) => row.map((cell) => String(cell ?? '')));

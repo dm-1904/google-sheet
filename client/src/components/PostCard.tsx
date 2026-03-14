@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { Link } from 'react-router-dom';
 import type { SeoArticleIndexItem } from '../types/post';
 import '../css/PostCard.css';
@@ -7,7 +8,7 @@ type Props = {
   post: SeoArticleIndexItem;
 };
 
-export const PostCard = ({ post }: Props) => {
+const PostCardComponent = ({ post }: Props) => {
   const dateValue = post.publish_date || post.update_date;
   const date = dateValue ? new Date(dateValue).toLocaleDateString() : 'Unknown date';
   const title = post.h1 || post.title_tag || post.slug;
@@ -27,3 +28,5 @@ export const PostCard = ({ post }: Props) => {
     </article>
   );
 };
+
+export const PostCard = memo(PostCardComponent);

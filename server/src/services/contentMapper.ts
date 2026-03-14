@@ -338,6 +338,30 @@ const dedupeBySlug = (articles: SeoArticle[]): SeoArticle[] => {
   return unique;
 };
 
+const sortIndexByDateDesc = (left: SeoArticleIndexItem, right: SeoArticleIndexItem): number => {
+  const leftDate = new Date(left.publish_date || left.update_date || '').getTime();
+  const rightDate = new Date(right.publish_date || right.update_date || '').getTime();
+  const leftSafe = Number.isNaN(leftDate) ? 0 : leftDate;
+  const rightSafe = Number.isNaN(rightDate) ? 0 : rightDate;
+  return rightSafe - leftSafe;
+};
+
+const dedupeIndexBySlug = (articles: SeoArticleIndexItem[]): SeoArticleIndexItem[] => {
+  const seen = new Set<string>();
+  const unique: SeoArticleIndexItem[] = [];
+
+  for (const article of articles) {
+    if (seen.has(article.slug)) {
+      continue;
+    }
+
+    seen.add(article.slug);
+    unique.push(article);
+  }
+
+  return unique;
+};
+
 const toSeoArticle = (row: Record<string, string>): SeoArticle => {
   const status = getField(row, 'status').trim();
   const slug = getField(row, 'slug').trim();
@@ -420,6 +444,68 @@ export const mapSheetValuesToSeoArticles = (values: string[][]): SeoArticle[] =>
     .sort(sortByDateDesc);
 
   return dedupeBySlug(mapped);
+};
+
+export const mapSheetValuesToSeoArticleIndexItems = (values: string[][]): SeoArticleIndexItem[] => {
+  if (values.length === 0) {
+    return [];
+  }
+
+  const [rawHeaders, ...rows] = values;
+  const headers = rawHeaders.map((header) => normalizeHeaderKey(String(header)));
+  validateHeaders(headers);
+
+  const mapped = rows
+    .map((row) => {
+      const rowMap = asRowMap(headers, row);
+      const status = getField(rowMap, 'status').trim();
+      const slug = getField(rowMap, 'slug').trim();
+      const titleTag = getField(rowMap, 'title_tag').trim();
+      const metaDescription = getField(rowMap, 'meta_description').trim();
+
+      if (!slug || !titleTag || !metaDescription || !isPublishedStatus(status)) {
+        return null;
+      }
+
+      const publishDate = normalizeDate(getField(rowMap, 'publish_date'));
+      const updateDate = normalizeDate(getField(rowMap, 'update_date'));
+      const introLede = getField(rowMap, 'intro_lede').trim();
+      const featuredImageUrl = getField(rowMap, 'featured_image_url').trim();
+      const featuredImageAlt = getField(rowMap, 'featured_image_alt').trim();
+      const categorySlug = getField(rowMap, 'category_slug').trim();
+
+      const item: SeoArticleIndexItem = {
+        status,
+        slug,
+        canonical_url: buildCanonicalUrl(getField(rowMap, 'canonical_url'), slug),
+        publish_date: publishDate,
+        title_tag: titleTag,
+        meta_description: metaDescription,
+        h1: getField(rowMap, 'h1').trim() || titleTag,
+      };
+
+      if (updateDate) {
+        item.update_date = updateDate;
+      }
+      if (introLede) {
+        item.intro_lede = introLede;
+      }
+      if (featuredImageUrl) {
+        item.featured_image_url = featuredImageUrl;
+      }
+      if (featuredImageAlt) {
+        item.featured_image_alt = featuredImageAlt;
+      }
+      if (categorySlug) {
+        item.category_slug = categorySlug;
+      }
+
+      return item;
+    })
+    .filter((item): item is SeoArticleIndexItem => Boolean(item))
+    .sort(sortIndexByDateDesc);
+
+  return dedupeIndexBySlug(mapped);
 };
 
 export const toSeoArticleIndexItem = (article: SeoArticle): SeoArticleIndexItem => {

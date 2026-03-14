@@ -7,6 +7,8 @@ export const postsRouter = Router();
 postsRouter.get('/', async (_req: Request, res: Response) => {
   try {
     const posts = await getPostIndex();
+    res.setHeader('Cache-Control', 'public, max-age=30, stale-while-revalidate=120');
+    res.setHeader('Vary', 'Origin');
     res.json({ posts });
   } catch (error) {
     console.error('Unable to fetch posts:', error);
@@ -36,6 +38,8 @@ postsRouter.get('/:slug', async (req: Request, res: Response) => {
       return;
     }
 
+    res.setHeader('Cache-Control', 'public, max-age=60, stale-while-revalidate=300');
+    res.setHeader('Vary', 'Origin');
     res.json({ post });
   } catch (error) {
     console.error('Unable to fetch post:', error);

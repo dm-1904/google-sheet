@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Helmet } from 'react-helmet-async';
 import { Link, useParams } from 'react-router-dom';
@@ -33,9 +34,29 @@ export const BlogPost = () => {
 
   const { data, isLoading, isError, error } = useQuery({
     queryKey: ['post', slug],
-    queryFn: () => fetchPostBySlug(slug ?? ''),
+    queryFn: ({ signal }) => fetchPostBySlug(slug ?? '', { signal }),
     enabled: Boolean(slug),
   });
+
+  const internalLinks = useMemo(
+    () => (data ? parseInternalLinks(data.internal_links_json) : []),
+    [data?.internal_links_json],
+  );
+  const title = data ? getDisplayTitle(data) : '';
+  const breadcrumbs = useMemo(() => {
+    if (!data) {
+      return [];
+    }
+    const breadcrumbItems = parseBreadcrumbItems(data.breadcrumb_json);
+    return breadcrumbItems.length > 0
+      ? breadcrumbItems
+      : [
+          { name: 'Home', url: '/' },
+          { name: 'Blog', url: '/blog' },
+          { name: title, url: `/blog/${data.slug}` },
+        ];
+  }, [data, title]);
+  const structuredData = useMemo(() => (data ? buildStructuredData(data) : []), [data]);
 
   if (!slug) {
     return <p>Invalid slug.</p>;
@@ -58,21 +79,10 @@ export const BlogPost = () => {
     return <p>Post not found.</p>;
   }
 
-  const title = getDisplayTitle(data);
   const canonicalUrl = getCanonicalUrl(data);
   const robotsContent = getRobotsMetaContent(data);
   const publishedAt = formatDate(data.publish_date);
   const updatedAt = formatDate(data.update_date);
-  const internalLinks = parseInternalLinks(data.internal_links_json);
-  const breadcrumbItems = parseBreadcrumbItems(data.breadcrumb_json);
-  const breadcrumbs =
-    breadcrumbItems.length > 0
-      ? breadcrumbItems
-      : [
-          { name: 'Home', url: '/' },
-          { name: 'Blog', url: '/blog' },
-          { name: title, url: `/blog/${data.slug}` },
-        ];
 
   return (
     <main className="blog-post">
@@ -81,7 +91,7 @@ export const BlogPost = () => {
         <meta name="description" content={data.meta_description || title} />
         <meta name="robots" content={robotsContent} />
         <link rel="canonical" href={canonicalUrl} />
-        {buildStructuredData(data).map((schema, index) => (
+        {structuredData.map((schema, index) => (
           <script key={`schema-${index}`} type="application/ld+json">
             {JSON.stringify(schema)}
           </script>
@@ -123,6 +133,8 @@ export const BlogPost = () => {
           src={data.featured_image_url}
           alt={data.featured_image_alt || title}
           className="blog-post__hero-image"
+          loading="eager"
+          decoding="async"
         />
       ) : null}
 

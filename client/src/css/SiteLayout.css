@@ -98,7 +98,11 @@ body,
   /* width: min(1200px, 100%); */
   /* margin: 0 auto; */
   /* padding: 1rem; */
-  width: 100vw;
+  width: 100%;
+}
+
+.site-layout__loading {
+  padding: 1rem;
 }
 
 @media (max-width: 768px) {

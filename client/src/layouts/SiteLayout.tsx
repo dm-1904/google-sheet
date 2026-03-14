@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
 import { Footer } from '../components/Footer';
 import '../css/SiteLayout.css';
@@ -33,23 +33,36 @@ export const SiteLayout = () => {
               src="/nav/DesertValleyHomeSearch-com.png"
               alt="Desert Valley Home Search Logo"
               className="nav-logo-img"
+              width={1280}
+              height={312}
+              decoding="async"
+              fetchPriority="high"
             />
             <div className="nav-name-img-box">
               <img
                 src="/nav/Presented-by.png"
                 alt="Presented by"
                 className="presented-by"
+                width={640}
+                height={205}
+                decoding="async"
               />
               <img
                 src="/nav/Damon-Ryon-2.png"
                 alt="Damon Ryon"
                 className="name-img-logo"
+                width={800}
+                height={365}
+                decoding="async"
               />
             </div>
             <img
               src="/nav/Damon-P.jpg"
               alt="Damon portrait"
               className="damon-picture"
+              width={420}
+              height={588}
+              decoding="async"
             />
           </div>
 
@@ -87,7 +100,15 @@ export const SiteLayout = () => {
       </header>
 
       <main className="site-layout__content">
-        <Outlet />
+        <Suspense
+          fallback={
+            <div className="site-layout__loading">
+              <p>Loading page...</p>
+            </div>
+          }
+        >
+          <Outlet />
+        </Suspense>
       </main>
       <Footer />
     </div>

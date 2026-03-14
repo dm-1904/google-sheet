@@ -11,14 +11,27 @@ const handleResponse = async <T>(response: Response): Promise<T> => {
   return response.json() as Promise<T>;
 };
 
-export const fetchPosts = async (): Promise<SeoArticleIndexItem[]> => {
-  const response = await fetch(`${API_URL}/api/posts`);
+type FetchOptions = {
+  signal?: AbortSignal;
+};
+
+export const fetchPosts = async ({ signal }: FetchOptions = {}): Promise<SeoArticleIndexItem[]> => {
+  const response = await fetch(`${API_URL}/api/posts`, {
+    signal,
+    headers: { Accept: 'application/json' },
+  });
   const data = await handleResponse<{ posts: SeoArticleIndexItem[] }>(response);
   return data.posts;
 };
 
-export const fetchPostBySlug = async (slug: string): Promise<SeoArticle> => {
-  const response = await fetch(`${API_URL}/api/posts/${encodeURIComponent(slug)}`);
+export const fetchPostBySlug = async (
+  slug: string,
+  { signal }: FetchOptions = {},
+): Promise<SeoArticle> => {
+  const response = await fetch(`${API_URL}/api/posts/${encodeURIComponent(slug)}`, {
+    signal,
+    headers: { Accept: 'application/json' },
+  });
   const data = await handleResponse<{ post: SeoArticle }>(response);
   return data.post;
 };

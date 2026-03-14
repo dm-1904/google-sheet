@@ -12,7 +12,7 @@ export const BlogIndex = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const { data, isLoading, isError, error } = useQuery({
     queryKey: ['posts'],
-    queryFn: fetchPosts,
+    queryFn: ({ signal }) => fetchPosts({ signal }),
   });
 
   const categories = useMemo(() => {
