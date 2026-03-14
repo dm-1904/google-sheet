@@ -52,36 +52,6 @@ export const NEIGHBORHOOD_GUIDE_CARDS: GuideCardData[] = [
     description: 'View Buckeye neighborhood information, new developments, and housing options.',
     imageSrc: '/images/neighborhood-guides/buckeye.jpg',
   },
-  {
-    title: 'Avondale',
-    slug: 'avondale',
-    path: '/neighborhood-guides/avondale',
-    description:
-      'See what Avondale has to offer, from neighborhoods to local convenience and lifestyle.',
-    imageSrc: '/images/neighborhood-guides/avondale.jpg',
-  },
-  {
-    title: 'El Mirage',
-    slug: 'el-mirage',
-    path: '/neighborhood-guides/el-mirage',
-    description: 'Explore El Mirage neighborhoods and what buyers should know about the area.',
-    imageSrc: '/images/neighborhood-guides/el-mirage.jpg',
-  },
-  {
-    title: 'Tolleson',
-    slug: 'tolleson',
-    path: '/neighborhood-guides/tolleson',
-    description: 'Discover Tolleson neighborhoods, location advantages, and nearby amenities.',
-    imageSrc: '/images/neighborhood-guides/tolleson.jpg',
-  },
-  {
-    title: 'Youngtown',
-    slug: 'youngtown',
-    path: '/neighborhood-guides/youngtown',
-    description:
-      'Explore Youngtown and learn what makes this smaller West Valley community unique.',
-    imageSrc: '/images/neighborhood-guides/youngtown.jpg',
-  },
 ];
 
 export const CITY_NEIGHBORHOOD_GUIDE_CARDS = NEIGHBORHOOD_GUIDE_CARDS.filter(

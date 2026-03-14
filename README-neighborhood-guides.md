@@ -27,10 +27,6 @@
 - `/neighborhood-guides/peoria`
 - `/neighborhood-guides/goodyear`
 - `/neighborhood-guides/buckeye`
-- `/neighborhood-guides/avondale`
-- `/neighborhood-guides/el-mirage`
-- `/neighborhood-guides/tolleson`
-- `/neighborhood-guides/youngtown`
 
 ## Retirement Hub Route
 
@@ -63,10 +59,6 @@ Place these files in `client/public` exactly as listed.
 - `/images/neighborhood-guides/peoria.jpg`
 - `/images/neighborhood-guides/goodyear.jpg`
 - `/images/neighborhood-guides/buckeye.jpg`
-- `/images/neighborhood-guides/avondale.jpg`
-- `/images/neighborhood-guides/el-mirage.jpg`
-- `/images/neighborhood-guides/tolleson.jpg`
-- `/images/neighborhood-guides/youngtown.jpg`
 
 ### Retirement Communities
 
