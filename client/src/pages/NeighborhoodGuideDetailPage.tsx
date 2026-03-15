@@ -30,6 +30,9 @@ export const NeighborhoodGuideDetailPage = () => {
       </Helmet>
 
       <h1>{guide.title}</h1>
+      <Link className="guide-detail-page__back-link" to="/neighborhood-guides">
+        ← Back to Neighborhood Guides
+      </Link>
       <div className="guide-detail-page__body">
         <p>
           This neighborhood guide for {guide.title} is being built out and will include local lifestyle
@@ -37,9 +40,6 @@ export const NeighborhoodGuideDetailPage = () => {
         </p>
         <p className="guide-detail-page__note">Full neighborhood guide content will be added later.</p>
       </div>
-      <Link className="guide-detail-page__back-link" to="/neighborhood-guides">
-        ← Back to Neighborhood Guides
-      </Link>
     </main>
   );
 };
