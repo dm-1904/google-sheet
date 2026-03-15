@@ -50,10 +50,14 @@
 
 .footer-broker-logo {
   width: 300px;
+  max-width: 100%;
+  height: auto;
 }
 
 .ryon-group-logo img {
   width: 300px;
+  max-width: 100%;
+  height: auto;
 }
 
 .broker-address {
@@ -126,5 +130,15 @@
 
   .footer-disc {
     gap: 1rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .footer {
+    padding: 2rem 1rem 1.25rem;
+  }
+
+  .footer-disc-statement p {
+    margin: 16px 12px;
   }
 }

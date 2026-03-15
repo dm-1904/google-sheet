@@ -4,11 +4,23 @@
   color: #111;
   font-family: Arial, sans-serif;
 }
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
 html,
 body,
 #root {
   margin: 0;
   padding: 0;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
 }
 
 .nav-header {
@@ -32,6 +44,7 @@ body,
   align-items: center;
   justify-content: center;
   gap: 0.75rem;
+  min-width: 0;
 }
 
 .nav-name-img-box {
@@ -60,9 +73,10 @@ body,
 }
 
 .damon-picture {
-  /* width: clamp(44px, 7vw, 84px); */
-  width: 10vw;
+  width: clamp(60px, 9%, 112px);
   height: auto;
+  max-width: 100%;
+  flex: 0 0 auto;
   border-radius: 15%;
   object-fit: cover;
 }
@@ -105,6 +119,34 @@ body,
   padding: 1rem;
 }
 
+@media (max-width: 1200px) {
+  .nav-img-box {
+    gap: 0.6rem;
+  }
+
+  .damon-picture {
+    width: clamp(56px, 8.2%, 98px);
+  }
+}
+
+@media (max-width: 1024px) {
+  .nav-img-box {
+    gap: 0.55rem;
+  }
+
+  .nav-logo-img {
+    width: 54%;
+  }
+
+  .nav-name-img-box {
+    width: min(22%, 200px);
+  }
+
+  .damon-picture {
+    width: clamp(52px, 8%, 90px);
+  }
+}
+
 @media (max-width: 768px) {
   .nav-box {
     padding: 0.5rem 0.75rem 0.75rem;
@@ -113,21 +155,22 @@ body,
   .nav-img-box {
     justify-content: flex-start;
     padding-top: 0.2rem;
-    padding-left: 2.7rem;
+    padding-left: 2.45rem;
+    gap: 0.45rem;
   }
 
   .nav-logo-img {
-    width: 56%;
-    min-width: 170px;
+    width: 54%;
+    min-width: 130px;
   }
 
   .nav-name-img-box {
-    width: 34%;
-    min-width: 88px;
+    width: 33%;
+    min-width: 70px;
   }
 
   .damon-picture {
-    width: 60px;
+    width: clamp(44px, 14vw, 60px);
   }
 
   .nav-toggle {
@@ -193,5 +236,43 @@ body,
 
   .site-layout__content {
     padding: 0.75rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .nav-box {
+    padding: 0.5rem 0.55rem 0.7rem;
+  }
+
+  .nav-img-box {
+    padding-left: 2.3rem;
+    gap: 0.35rem;
+  }
+
+  .nav-logo-img {
+    min-width: 118px;
+  }
+
+  .nav-name-img-box {
+    min-width: 62px;
+  }
+}
+
+@media (max-width: 480px) {
+  .nav-img-box {
+    padding-left: 2.15rem;
+    gap: 0.3rem;
+  }
+
+  .nav-logo-img {
+    min-width: 106px;
+  }
+
+  .nav-name-img-box {
+    min-width: 56px;
+  }
+
+  .damon-picture {
+    width: clamp(40px, 14vw, 52px);
   }
 }
