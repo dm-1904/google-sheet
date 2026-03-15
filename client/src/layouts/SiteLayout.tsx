@@ -1,5 +1,5 @@
-import { Suspense, useState } from 'react';
-import { NavLink, Outlet } from 'react-router-dom';
+import { Suspense, useEffect, useState } from 'react';
+import { NavLink, Outlet, useLocation } from 'react-router-dom';
 import { Footer } from '../components/Footer';
 import '../css/SiteLayout.css';
 
@@ -20,6 +20,11 @@ const navItems: NavItem[] = [
 
 export const SiteLayout = () => {
   const [menuOpen, setMenuOpen] = useState(false);
+  const location = useLocation();
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+  }, [location.pathname]);
 
   const navLinkClassName = ({ isActive }: { isActive: boolean }) =>
     `nav-link${isActive ? ' nav-link--active' : ''}`;
