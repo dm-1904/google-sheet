@@ -61,7 +61,13 @@
   width: 100%;
   aspect-ratio: 16 / 9;
   object-fit: cover;
+  object-position: center bottom;
   background: #e8eef3;
+}
+
+.guide-card__image--contain {
+  object-fit: contain;
+  background: #fff;
 }
 
 .guide-card__body {

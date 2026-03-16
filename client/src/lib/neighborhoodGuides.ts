@@ -134,11 +134,11 @@ export const RETIREMENT_COMMUNITY_CARDS: GuideCardData[] = [
     imageSrc: '/images/retirement-communities/sun-city-festival.jpg',
   },
   {
-    title: 'Ventana Lakes',
-    slug: 'ventana-lakes',
-    path: '/neighborhood-guides/retirement-communities/ventana-lakes',
-    description: 'Discover lake-centered active adult living in Ventana Lakes.',
-    imageSrc: '/images/retirement-communities/ventana-lakes.jpg',
+    title: 'Sun Village',
+    slug: 'sun-village',
+    path: '/neighborhood-guides/retirement-communities/sun-village',
+    description: 'Discover active adult living in Sun Village.',
+    imageSrc: '/images/retirement-communities/sun-village.jpg',
   },
   {
     title: 'CantaMia at Estrella',

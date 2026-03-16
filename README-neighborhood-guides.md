@@ -43,7 +43,7 @@
 - `/neighborhood-guides/retirement-communities/corte-bella`
 - `/neighborhood-guides/retirement-communities/arizona-traditions`
 - `/neighborhood-guides/retirement-communities/sun-city-festival`
-- `/neighborhood-guides/retirement-communities/ventana-lakes`
+- `/neighborhood-guides/retirement-communities/sun-village`
 - `/neighborhood-guides/retirement-communities/cantamia-at-estrella`
 - `/neighborhood-guides/retirement-communities/sundance-active-adult`
 
@@ -71,7 +71,7 @@ Place these files in `client/public` exactly as listed.
 - `/images/retirement-communities/corte-bella.jpg`
 - `/images/retirement-communities/arizona-traditions.jpg`
 - `/images/retirement-communities/sun-city-festival.jpg`
-- `/images/retirement-communities/ventana-lakes.jpg`
+- `/images/retirement-communities/sun-village.jpg`
 - `/images/retirement-communities/cantamia-at-estrella.jpg`
 - `/images/retirement-communities/sundance-active-adult.jpg`
 
