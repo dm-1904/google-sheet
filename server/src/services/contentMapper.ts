@@ -3,6 +3,8 @@ import { REQUIRED_HEADERS } from '../types/post.js';
 
 const TRUE_VALUES = new Set(['true', '1', 'yes', 'y', 'on']);
 const FALSE_VALUES = new Set(['false', '0', 'no', 'n', 'off']);
+const ISO_DATE_ONLY_PATTERN = /^(\d{4})-(\d{2})-(\d{2})$/;
+const US_DATE_ONLY_PATTERN = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/;
 
 const normalizeHeaderKey = (value: string): string => {
   return value
@@ -12,10 +14,42 @@ const normalizeHeaderKey = (value: string): string => {
     .replace(/[\s-]+/g, '_');
 };
 
+const toIsoDateOnly = (year: number, month: number, day: number): string => {
+  const parsed = new Date(Date.UTC(year, month - 1, day));
+  if (
+    Number.isNaN(parsed.getTime()) ||
+    parsed.getUTCFullYear() !== year ||
+    parsed.getUTCMonth() !== month - 1 ||
+    parsed.getUTCDate() !== day
+  ) {
+    return '';
+  }
+  return `${String(year).padStart(4, '0')}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+};
+
 const normalizeDate = (value: string): string => {
   const trimmed = value.trim();
   if (!trimmed) {
     return '';
+  }
+
+  const isoDateOnlyMatch = ISO_DATE_ONLY_PATTERN.exec(trimmed);
+  if (isoDateOnlyMatch) {
+    return toIsoDateOnly(
+      Number(isoDateOnlyMatch[1]),
+      Number(isoDateOnlyMatch[2]),
+      Number(isoDateOnlyMatch[3]),
+    );
+  }
+
+  const usDateOnlyMatch = US_DATE_ONLY_PATTERN.exec(trimmed);
+  if (usDateOnlyMatch) {
+    const isoDate = toIsoDateOnly(
+      Number(usDateOnlyMatch[3]),
+      Number(usDateOnlyMatch[1]),
+      Number(usDateOnlyMatch[2]),
+    );
+    return isoDate || trimmed;
   }
 
   const parsed = new Date(trimmed);
@@ -64,6 +98,31 @@ const normalizePath = (value: string): string => {
     return '';
   }
   return trimmed.startsWith('/') ? trimmed : `/${trimmed}`;
+};
+
+const normalizeFeaturedImageUrl = (value: string): string => {
+  const trimmed = value.trim();
+  if (!trimmed) {
+    return '';
+  }
+
+  if (/^https?:\/\//i.test(trimmed)) {
+    return trimmed;
+  }
+
+  if (trimmed.startsWith('/')) {
+    return trimmed;
+  }
+
+  if (trimmed.startsWith('images/')) {
+    return `/${trimmed}`;
+  }
+
+  if (trimmed.startsWith('blog/')) {
+    return `/images/${trimmed}`;
+  }
+
+  return `/images/blog/${trimmed}`;
 };
 
 const buildCanonicalUrl = (canonicalUrl: string, slug: string): string => {
@@ -369,7 +428,7 @@ const toSeoArticle = (row: Record<string, string>): SeoArticle => {
   const updateDate = normalizeDate(getField(row, 'update_date'));
   const metaRobots = getField(row, 'meta_robots').trim();
   const introLede = getField(row, 'intro_lede').trim();
-  const featuredImageUrl = getField(row, 'featured_image_url').trim();
+  const featuredImageUrl = normalizeFeaturedImageUrl(getField(row, 'featured_image_url'));
   const featuredImageAlt = getField(row, 'featured_image_alt').trim();
   const categorySlug = getField(row, 'category_slug').trim();
   const internalLinksJson = getField(row, 'internal_links_json').trim();
@@ -470,7 +529,7 @@ export const mapSheetValuesToSeoArticleIndexItems = (values: string[][]): SeoArt
       const publishDate = normalizeDate(getField(rowMap, 'publish_date'));
       const updateDate = normalizeDate(getField(rowMap, 'update_date'));
       const introLede = getField(rowMap, 'intro_lede').trim();
-      const featuredImageUrl = getField(rowMap, 'featured_image_url').trim();
+      const featuredImageUrl = normalizeFeaturedImageUrl(getField(rowMap, 'featured_image_url'));
       const featuredImageAlt = getField(rowMap, 'featured_image_alt').trim();
       const categorySlug = getField(rowMap, 'category_slug').trim();
 

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import type { SeoArticleIndexItem } from '../types/post';
 import '../css/PostCard.css';
 import { formatCategoryLabel } from '../lib/category';
+import { formatCmsDate } from '../lib/date';
 
 type Props = {
   post: SeoArticleIndexItem;
@@ -10,7 +11,7 @@ type Props = {
 
 const PostCardComponent = ({ post }: Props) => {
   const dateValue = post.publish_date || post.update_date;
-  const date = dateValue ? new Date(dateValue).toLocaleDateString() : 'Unknown date';
+  const date = formatCmsDate(dateValue);
   const title = post.h1 || post.title_tag || post.slug;
   const summary = post.intro_lede || post.meta_description;
   const href = `/blog/${post.slug}`;

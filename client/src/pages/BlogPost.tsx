@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Link, useParams } from 'react-router-dom';
 import { fetchPostBySlug } from '../api/posts';
 import { SeoHead } from '../components/SeoHead';
+import { formatCmsDate } from '../lib/date';
 import {
   buildStructuredData,
   getCanonicalUrl,
@@ -14,14 +15,6 @@ import type { SeoArticle } from '../types/post';
 import '../css/BlogPost.css';
 
 const POST_AUTHOR_NAME = 'Damon Ryon';
-
-const formatDate = (value?: string): string => {
-  if (!value) {
-    return 'Unknown date';
-  }
-  const parsed = new Date(value);
-  return Number.isNaN(parsed.getTime()) ? value : parsed.toLocaleDateString();
-};
 
 const getDisplayTitle = (article: SeoArticle): string => {
   return article.h1 || article.title_tag || article.slug;
@@ -36,6 +29,8 @@ export const BlogPost = () => {
     queryKey: ['post', slug],
     queryFn: ({ signal }) => fetchPostBySlug(slug ?? '', { signal }),
     enabled: Boolean(slug),
+    staleTime: 0,
+    refetchOnMount: 'always',
   });
 
   const internalLinks = useMemo(
@@ -81,8 +76,8 @@ export const BlogPost = () => {
 
   const canonicalUrl = getCanonicalUrl(data);
   const robotsContent = getRobotsMetaContent(data);
-  const publishedAt = formatDate(data.publish_date);
-  const updatedAt = formatDate(data.update_date);
+  const publishedAt = formatCmsDate(data.publish_date);
+  const updatedAt = formatCmsDate(data.update_date);
   const titleTag = data.title_tag || title;
   const description = data.meta_description || data.intro_lede || title;
 

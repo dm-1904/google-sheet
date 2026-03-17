@@ -14,6 +14,8 @@ export const BlogIndex = () => {
   const { data, isLoading, isError, error } = useQuery({
     queryKey: ['posts'],
     queryFn: ({ signal }) => fetchPosts({ signal }),
+    staleTime: 0,
+    refetchOnMount: 'always',
   });
 
   const categories = useMemo(() => {

@@ -1,7 +1,10 @@
 const DEFAULT_CATEGORY_LABEL = 'Uncategorized';
 
 export const formatCategoryLabel = (value?: string): string => {
-  const trimmed = value?.trim();
+  const trimmed = value
+    ?.trim()
+    .replace(/^category(?:[\s_-]+|$)/i, '')
+    .trim();
   if (!trimmed) {
     return DEFAULT_CATEGORY_LABEL;
   }
