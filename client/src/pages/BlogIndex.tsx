@@ -1,30 +1,30 @@
-import { useMemo } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { Link, useSearchParams } from 'react-router-dom';
-import { fetchPosts } from '../api/posts';
-import { PostCard } from '../components/PostCard';
-import { SeoHead } from '../components/SeoHead';
-import '../css/BlogIndex.css';
-import { formatCategoryLabel } from '../lib/category';
+import { useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { Link, useSearchParams } from "react-router-dom";
+import { fetchPosts } from "../api/posts";
+import { PostCard } from "../components/PostCard";
+import { SeoHead } from "../components/SeoHead";
+import "../css/BlogIndex.css";
+import { formatCategoryLabel } from "../lib/category";
 
-const ALL_FILTER = 'all';
-const CITY_PARAM = 'city';
-const CATEGORY_PARAM = 'category';
+const ALL_FILTER = "all";
+const CITY_PARAM = "city";
+const CATEGORY_PARAM = "category";
 
 const formatCityLabel = (value: string): string => {
   return value
     .trim()
-    .replace(/[-_]+/g, ' ')
-    .split(' ')
+    .replace(/[-_]+/g, " ")
+    .split(" ")
     .filter(Boolean)
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(' ');
+    .join(" ");
 };
 
 const sortValues = (values: string[]): string[] => {
   return values.sort((left, right) =>
     left.localeCompare(right, undefined, {
-      sensitivity: 'base',
+      sensitivity: "base",
     }),
   );
 };
@@ -32,10 +32,10 @@ const sortValues = (values: string[]): string[] => {
 export const BlogIndex = () => {
   const [searchParams] = useSearchParams();
   const { data, isLoading, isError, error } = useQuery({
-    queryKey: ['posts'],
+    queryKey: ["posts"],
     queryFn: ({ signal }) => fetchPosts({ signal }),
     staleTime: 0,
-    refetchOnMount: 'always',
+    refetchOnMount: "always",
   });
 
   const cities = useMemo(() => {
@@ -70,13 +70,14 @@ export const BlogIndex = () => {
     );
   }, [data]);
 
-  const selectedCityFromUrl = searchParams.get(CITY_PARAM)?.trim() ?? '';
+  const selectedCityFromUrl = searchParams.get(CITY_PARAM)?.trim() ?? "";
   const selectedCity =
     selectedCityFromUrl && cities.includes(selectedCityFromUrl)
       ? selectedCityFromUrl
       : ALL_FILTER;
 
-  const selectedCategoryFromUrl = searchParams.get(CATEGORY_PARAM)?.trim() ?? '';
+  const selectedCategoryFromUrl =
+    searchParams.get(CATEGORY_PARAM)?.trim() ?? "";
   const selectedCategory =
     selectedCategoryFromUrl && categories.includes(selectedCategoryFromUrl)
       ? selectedCategoryFromUrl
@@ -88,9 +89,12 @@ export const BlogIndex = () => {
     }
 
     return data.filter((post) => {
-      const cityMatches = selectedCity === ALL_FILTER || post.primary_city?.trim() === selectedCity;
+      const cityMatches =
+        selectedCity === ALL_FILTER ||
+        post.primary_city?.trim() === selectedCity;
       const categoryMatches =
-        selectedCategory === ALL_FILTER || post.category_slug?.trim() === selectedCategory;
+        selectedCategory === ALL_FILTER ||
+        post.category_slug?.trim() === selectedCategory;
       return cityMatches && categoryMatches;
     });
   }, [data, selectedCategory, selectedCity]);
@@ -106,7 +110,7 @@ export const BlogIndex = () => {
     }
 
     const query = nextParams.toString();
-    return query ? `/blog?${query}` : '/blog';
+    return query ? `/blog?${query}` : "/blog";
   };
 
   if (isLoading) {
@@ -126,18 +130,24 @@ export const BlogIndex = () => {
         noindex={selectedCity !== ALL_FILTER || selectedCategory !== ALL_FILTER}
       />
 
-      <h1>Surprise & West Valley Real Estate Blog</h1>
-      <p>Local market insights, neighborhood guides, and relocation advice for buyers and sellers in the West Valley.</p>
+      <h1>Real Estate Blog</h1>
+      <p>
+        Local market insights, neighborhood guides, and relocation advice for
+        buyers and sellers in the West Valley.
+      </p>
 
-      <section className="blog-index__filters" aria-label="Filter posts by city and category">
+      <section
+        className="blog-index__filters"
+        aria-label="Filter posts by city and category"
+      >
         <div className="blog-index__filter-group">
           <p className="blog-index__filter-label">Filter by City:</p>
           <div className="blog-index__filter-list">
             <Link
               to={buildFilterHref(ALL_FILTER, selectedCategory)}
               replace
-              className={`blog-index__filter-chip${selectedCity === ALL_FILTER ? ' is-active' : ''}`}
-              aria-current={selectedCity === ALL_FILTER ? 'page' : undefined}
+              className={`blog-index__filter-chip${selectedCity === ALL_FILTER ? " is-active" : ""}`}
+              aria-current={selectedCity === ALL_FILTER ? "page" : undefined}
             >
               All
             </Link>
@@ -146,8 +156,8 @@ export const BlogIndex = () => {
                 key={city}
                 to={buildFilterHref(city, selectedCategory)}
                 replace
-                className={`blog-index__filter-chip${selectedCity === city ? ' is-active' : ''}`}
-                aria-current={selectedCity === city ? 'page' : undefined}
+                className={`blog-index__filter-chip${selectedCity === city ? " is-active" : ""}`}
+                aria-current={selectedCity === city ? "page" : undefined}
               >
                 {formatCityLabel(city)}
               </Link>
@@ -161,8 +171,10 @@ export const BlogIndex = () => {
             <Link
               to={buildFilterHref(selectedCity, ALL_FILTER)}
               replace
-              className={`blog-index__filter-chip${selectedCategory === ALL_FILTER ? ' is-active' : ''}`}
-              aria-current={selectedCategory === ALL_FILTER ? 'page' : undefined}
+              className={`blog-index__filter-chip${selectedCategory === ALL_FILTER ? " is-active" : ""}`}
+              aria-current={
+                selectedCategory === ALL_FILTER ? "page" : undefined
+              }
             >
               All
             </Link>
@@ -171,8 +183,10 @@ export const BlogIndex = () => {
                 key={category}
                 to={buildFilterHref(selectedCity, category)}
                 replace
-                className={`blog-index__filter-chip${selectedCategory === category ? ' is-active' : ''}`}
-                aria-current={selectedCategory === category ? 'page' : undefined}
+                className={`blog-index__filter-chip${selectedCategory === category ? " is-active" : ""}`}
+                aria-current={
+                  selectedCategory === category ? "page" : undefined
+                }
               >
                 {formatCategoryLabel(category)}
               </Link>
@@ -182,12 +196,22 @@ export const BlogIndex = () => {
       </section>
 
       {filteredPosts.length > 0 ? (
-        filteredPosts.map((post) => <PostCard key={post.slug} post={post} />)
+        filteredPosts.map((post) => (
+          <PostCard
+            key={post.slug}
+            post={post}
+          />
+        ))
       ) : (
         <p>
           No posts found
-          {selectedCity !== ALL_FILTER ? ` in ${formatCityLabel(selectedCity)}` : ''}
-          {selectedCategory !== ALL_FILTER ? ` for ${formatCategoryLabel(selectedCategory)}` : ''}.
+          {selectedCity !== ALL_FILTER
+            ? ` in ${formatCityLabel(selectedCity)}`
+            : ""}
+          {selectedCategory !== ALL_FILTER
+            ? ` for ${formatCategoryLabel(selectedCategory)}`
+            : ""}
+          .
         </p>
       )}
     </main>
