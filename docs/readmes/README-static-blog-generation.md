@@ -30,10 +30,16 @@ Implementation:
 - Script reads Google Sheets via existing read-only integration.
 - It maps/normalizes rows through the current content mapper.
 - It requires an absolute site URL (`SITE_BASE_URL`) by default to avoid relative canonical/OG output.
+- In production mode, localhost URLs are rejected for canonical/OG generation.
+- Placeholder canonical domains from sheet rows (for example `yourdomain.com` and `example.com`) are ignored and replaced by fallback canonical URLs.
 - It writes static files to:
   - `client/public/blog/index.html`
   - `client/public/blog/<slug>/index.html`
   - `client/public/blog-static.css`
+- If `client/dist` exists and `STATIC_BLOG_MIRROR_DIST=1`, it also mirrors output to:
+  - `client/dist/blog/index.html`
+  - `client/dist/blog/<slug>/index.html`
+  - `client/dist/blog-static.css`
 
 ## Build Integration
 
@@ -66,6 +72,7 @@ What it does:
 1. Invalidates server post cache.
 2. Regenerates static blog HTML locally.
 3. Optionally triggers deploy build hook if `DEPLOY_BUILD_HOOK_URL` is set.
+4. Status response includes `skipStaticGenerationEnabled` so you can detect if generation is accidentally disabled.
 
 Production note:
 
@@ -178,6 +185,16 @@ Or JSON array:
 ]
 ```
 
+### `schema_primary_type`
+
+Allowed values:
+
+- `BlogPosting`
+- `Article`
+- `NewsArticle`
+
+Any other value is ignored and defaults to `BlogPosting`.
+
 ## SEO and Indexation
 
 Should be indexed:
@@ -203,6 +220,7 @@ Required for generation:
 Recommended:
 
 - `STATIC_BLOG_REQUIRE_ABSOLUTE_URLS=1` (default behavior: fail generation if absolute site URL is missing)
+- `STATIC_BLOG_MIRROR_DIST=1` (recommended: keep `dist` blog output synced during revalidation)
 - `GOOGLE_SHEETS_TAB_NAME`
 - `GOOGLE_SHEETS_RANGE` (default now `A1:Z`)
 - `SERVE_STATIC_BLOG_PAGES=1` (serve generated static blog pages from the Node server when available)
@@ -215,11 +233,12 @@ Optional revalidation/deploy:
 
 Optional local skip:
 
-- `SKIP_STATIC_BLOG_GENERATION=1`
+- `SKIP_STATIC_BLOG_GENERATION=1` (local development only; blocked in production)
 
 ## Limitations
 
 - Blog is now statically generated, but the rest of the site remains SPA.
 - Direct browser requests to blog routes should hit generated HTML in static hosting environments.
-- When using the Node server, static assets are served from `client/dist` (then `client/public`) and `/blog` + `/blog/:slug` are served from generated blog files.
+- When using the Node server, static assets are served from `client/dist` (then `client/public`) and `/blog` + `/blog/:slug` are served from generated blog files (`client/public/blog` first, `client/dist/blog` fallback).
+- Blog static responses include `X-Blog-Render-Mode: static-html` and `X-Static-Blog-Source: public|dist` headers for verification.
 - If your host does not serve nested `index.html` directories for `/blog/:slug`, configure rewrites accordingly.

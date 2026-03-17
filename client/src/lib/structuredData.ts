@@ -46,6 +46,31 @@ const tryParseJson = (value?: string): unknown => {
   }
 };
 
+const isAllowedUrl = (value: string): boolean => {
+  return /^https?:\/\//i.test(value) || value.startsWith('/');
+};
+
+const sanitizeUrl = (value: string): string => {
+  const trimmed = value.trim();
+  if (!trimmed) {
+    return '';
+  }
+  return isAllowedUrl(trimmed) ? trimmed : '';
+};
+
+const toIsoDate = (value?: string): string | undefined => {
+  if (!value?.trim()) {
+    return undefined;
+  }
+
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) {
+    return undefined;
+  }
+
+  return parsed.toISOString();
+};
+
 export const parseBreadcrumbItems = (raw?: string): BreadcrumbItem[] => {
   const parsed = tryParseJson(raw);
   if (!Array.isArray(parsed)) {
@@ -59,7 +84,7 @@ export const parseBreadcrumbItems = (raw?: string): BreadcrumbItem[] => {
     }
     const row = item as Record<string, unknown>;
     const name = String(row.name ?? row.title ?? row.label ?? '').trim();
-    const url = String(row.url ?? row.path ?? '').trim();
+    const url = sanitizeUrl(String(row.url ?? row.path ?? ''));
     if (!name || !url) {
       return;
     }
@@ -92,7 +117,7 @@ export const parseInternalLinks = (raw?: string): InternalLinkItem[] => {
   const links: InternalLinkItem[] = [];
   parsed.forEach((item) => {
     if (typeof item === 'string') {
-      const url = item.trim();
+      const url = sanitizeUrl(item);
       if (!url) {
         return;
       }
@@ -104,7 +129,7 @@ export const parseInternalLinks = (raw?: string): InternalLinkItem[] => {
       return;
     }
     const row = item as Record<string, unknown>;
-    const url = String(row.url ?? row.href ?? '').trim();
+    const url = sanitizeUrl(String(row.url ?? row.href ?? ''));
     if (!url) {
       return;
     }
@@ -182,6 +207,8 @@ export const getRobotsMetaContent = (article: SeoArticle): string => {
 };
 
 const buildArticleSchema = (article: SeoArticle, canonicalUrl: string): SchemaObject => {
+  const datePublished = toIsoDate(article.publish_date);
+  const dateModified = toIsoDate(article.update_date || article.publish_date);
   return cleanObject({
     '@context': 'https://schema.org',
     '@type': article.schema_primary_type || 'BlogPosting',
@@ -189,8 +216,8 @@ const buildArticleSchema = (article: SeoArticle, canonicalUrl: string): SchemaOb
     url: canonicalUrl,
     headline: getDisplayTitle(article),
     description: article.meta_description || article.intro_lede || getDisplayTitle(article),
-    datePublished: article.publish_date || undefined,
-    dateModified: article.update_date || article.publish_date || undefined,
+    datePublished: datePublished ?? undefined,
+    dateModified: dateModified ?? undefined,
     inLanguage: 'en-US',
     image: article.featured_image_url ? toAbsoluteUrl(article.featured_image_url) : undefined,
     articleSection: article.category_slug || undefined,

@@ -29,6 +29,10 @@ const shouldRequireSecret = (): boolean => {
   return parseBoolean(process.env.BLOG_REVALIDATE_REQUIRE_SECRET, isProduction());
 };
 
+const isSkipStaticGenerationEnabled = (): boolean => {
+  return parseBoolean(process.env.SKIP_STATIC_BLOG_GENERATION, false);
+};
+
 const isAuthorized = (req: Request): boolean => {
   const configuredSecret = getConfiguredSecret();
   if (!configuredSecret) {
@@ -71,10 +75,18 @@ staticBlogRouter.get('/blog/revalidate/status', (_req: Request, res: Response) =
     requiresSecret: shouldRequireSecret(),
     secretConfigured: Boolean(configuredSecret),
     deployHookConfigured: Boolean(deployHookUrl),
+    skipStaticGenerationEnabled: isSkipStaticGenerationEnabled(),
   });
 });
 
 staticBlogRouter.post('/blog/revalidate', async (req: Request, res: Response) => {
+  if (isProduction() && isSkipStaticGenerationEnabled()) {
+    res.status(503).json({
+      error: 'SKIP_STATIC_BLOG_GENERATION=1 is enabled; disable it before revalidation in production',
+    });
+    return;
+  }
+
   if (shouldRequireSecret() && !getConfiguredSecret()) {
     res.status(503).json({
       error: 'BLOG_REVALIDATE_SECRET must be set before using this endpoint',

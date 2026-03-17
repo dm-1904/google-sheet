@@ -61,6 +61,9 @@ For deployment and non-technical setup steps, use:
       { "question": "How far is Surprise from Phoenix?", "answer": "..." }
     ]
     ```
+- `schema_primary_type`
+  - Allowed values: `BlogPosting`, `Article`, `NewsArticle`
+  - Any other value is ignored and defaults to `BlogPosting`.
 
 ## 3. Metadata Generation
 
@@ -76,6 +79,7 @@ For deployment and non-technical setup steps, use:
 - Title: `title_tag` (fallback: `h1`/`slug`).
 - Description: `meta_description` (fallback: `intro_lede`/title).
 - Canonical: `canonical_url` (fallback: `/blog/:slug`).
+- Placeholder canonical domains (`yourdomain.com`, `example.com`) are ignored and automatically replaced by the fallback canonical URL.
 - Robots: `meta_robots` (fallback: `index,follow`).
 - Open Graph/Twitter: uses article title/description and featured image.
 - Static generation requires an absolute site URL (`SITE_BASE_URL`) so canonical/OG URLs are absolute in output HTML.
@@ -159,6 +163,8 @@ Should not be indexed:
 - You can set `GOOGLE_SHEETS_RANGE` wider if needed.
 - `SITE_BASE_URL` should be your production site URL (example: `https://www.yourdomain.com`).
 - `STATIC_BLOG_REQUIRE_ABSOLUTE_URLS=1` keeps static generation from outputting relative canonical/OG URLs by mistake.
+- `STATIC_BLOG_MIRROR_DIST=1` helps keep runtime static output fresh when revalidation runs on deployed servers.
+- In production, localhost base URLs are rejected during static generation to prevent broken canonical/OG output.
 
 ## 11. Known Limitations
 

@@ -5,6 +5,13 @@ const TRUE_VALUES = new Set(['true', '1', 'yes', 'y', 'on']);
 const FALSE_VALUES = new Set(['false', '0', 'no', 'n', 'off']);
 const ISO_DATE_ONLY_PATTERN = /^(\d{4})-(\d{2})-(\d{2})$/;
 const US_DATE_ONLY_PATTERN = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/;
+const ALLOWED_SCHEMA_PRIMARY_TYPES = new Set(['Article', 'BlogPosting', 'NewsArticle']);
+const PLACEHOLDER_CANONICAL_HOSTS = new Set([
+  'yourdomain.com',
+  'www.yourdomain.com',
+  'example.com',
+  'www.example.com',
+]);
 
 const normalizeHeaderKey = (value: string): string => {
   return value
@@ -125,15 +132,38 @@ const normalizeFeaturedImageUrl = (value: string): string => {
   return `/images/blog/${trimmed}`;
 };
 
+const isPlaceholderCanonicalUrl = (value: string): boolean => {
+  const trimmed = value.trim();
+  if (!trimmed || !/^https?:\/\//i.test(trimmed)) {
+    return false;
+  }
+
+  try {
+    const parsed = new URL(trimmed);
+    return PLACEHOLDER_CANONICAL_HOSTS.has(parsed.hostname.toLowerCase());
+  } catch {
+    return false;
+  }
+};
+
 const buildCanonicalUrl = (canonicalUrl: string, slug: string): string => {
   const explicitCanonical = canonicalUrl.trim();
-  if (explicitCanonical) {
+  if (explicitCanonical && !isPlaceholderCanonicalUrl(explicitCanonical)) {
     return explicitCanonical;
   }
 
   const baseUrl = (process.env.SITE_BASE_URL ?? '').trim().replace(/\/$/, '');
   const path = `/blog/${slug}`;
   return baseUrl ? `${baseUrl}${path}` : path;
+};
+
+const normalizeSchemaPrimaryType = (value: string): string => {
+  const trimmed = value.trim();
+  if (!trimmed) {
+    return '';
+  }
+
+  return ALLOWED_SCHEMA_PRIMARY_TYPES.has(trimmed) ? trimmed : '';
 };
 
 const sanitizeTrustedHtml = (value: string): string => {
@@ -466,7 +496,7 @@ const toSeoArticle = (row: Record<string, string>): SeoArticle => {
   const internalLinksJson = getField(row, 'internal_links_json').trim();
   const breadcrumbJson = getField(row, 'breadcrumb_json').trim();
   const faqJson = getField(row, 'faq_json').trim();
-  const schemaPrimaryType = getField(row, 'schema_primary_type').trim();
+  const schemaPrimaryType = normalizeSchemaPrimaryType(getField(row, 'schema_primary_type'));
   const primaryCity = getField(row, 'primary_city').trim();
   const primaryState = getField(row, 'primary_state').trim();
 

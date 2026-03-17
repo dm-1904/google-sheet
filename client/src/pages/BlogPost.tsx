@@ -46,6 +46,19 @@ const parseRelatedSlugs = (value?: string): string[] => {
     .filter(Boolean);
 };
 
+const toIsoDate = (value?: string): string | undefined => {
+  if (!value?.trim()) {
+    return undefined;
+  }
+
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) {
+    return undefined;
+  }
+
+  return parsed.toISOString();
+};
+
 export const BlogPost = () => {
   const { slug } = useParams();
 
@@ -155,6 +168,8 @@ export const BlogPost = () => {
   const updatedAt = formatCmsDate(data.update_date);
   const titleTag = data.title_tag || title;
   const description = data.meta_description || data.intro_lede || title;
+  const publishedTime = toIsoDate(data.publish_date);
+  const modifiedTime = toIsoDate(data.update_date || data.publish_date);
 
   return (
     <main className="blog-post">
@@ -166,8 +181,8 @@ export const BlogPost = () => {
         ogType="article"
         ogImage={data.featured_image_url}
         ogImageAlt={data.featured_image_alt || title}
-        publishedTime={data.publish_date}
-        modifiedTime={data.update_date || data.publish_date}
+        publishedTime={publishedTime}
+        modifiedTime={modifiedTime}
         articleSection={data.category_slug}
         structuredData={structuredData}
       />

@@ -24,10 +24,13 @@ SERVER_PORT=4000
 CLIENT_ORIGIN=http://localhost:5173
 SITE_BASE_URL=http://localhost:5173
 STATIC_BLOG_REQUIRE_ABSOLUTE_URLS=1
+STATIC_BLOG_MIRROR_DIST=1
 SERVE_STATIC_BLOG_PAGES=1
 BLOG_REVALIDATE_REQUIRE_SECRET=1
 BLOG_REVALIDATE_SECRET=replace-with-long-random-secret
 DEPLOY_BUILD_HOOK_URL=
+# Local only:
+SKIP_STATIC_BLOG_GENERATION=0
 GOOGLE_SHEETS_SPREADSHEET_ID=NEW_GOOGLE_SHEET_ID
 GOOGLE_SHEETS_TAB_NAME=Content
 GOOGLE_SHEETS_RANGE=A1:Z
@@ -89,6 +92,7 @@ When `SERVE_STATIC_BLOG_PAGES=1`, server can also serve:
 - `GET /blog`
 - `GET /blog/:slug`
 - Static assets from `client/dist` (fallback `client/public`)
+- Blog HTML from `client/public/blog` (fallback `client/dist/blog`)
 
 ## Google Sheet Header Row
 

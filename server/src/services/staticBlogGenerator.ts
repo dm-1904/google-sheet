@@ -1,4 +1,4 @@
-import { mkdir, readFile, rm, writeFile } from 'node:fs/promises';
+import { access, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { fetchSheetValues } from '../lib/googleSheets.js';
@@ -54,6 +54,8 @@ type FaqItem = {
 type GenerateStaticBlogOptions = {
   outputDir?: string;
   cssOutputPath?: string;
+  mirrorOutputDir?: string;
+  mirrorCssOutputPath?: string;
   siteName?: string;
   siteBaseUrl?: string;
 };
@@ -61,6 +63,9 @@ type GenerateStaticBlogOptions = {
 type StaticGenerationResult = {
   outputDir: string;
   cssOutputPath: string;
+  mirrorOutputDir?: string;
+  mirrorCssOutputPath?: string;
+  mirroredToDist: boolean;
   postCount: number;
   categoryCount: number;
 };
@@ -100,6 +105,21 @@ const shouldRequireAbsoluteSeoUrls = (): boolean => {
   return parseBoolean(process.env.STATIC_BLOG_REQUIRE_ABSOLUTE_URLS, true);
 };
 
+const shouldMirrorDistOutput = (): boolean => {
+  return parseBoolean(process.env.STATIC_BLOG_MIRROR_DIST, true);
+};
+
+const isProduction = (): boolean => process.env.NODE_ENV === 'production';
+
+const isLocalhostBaseUrl = (value: string): boolean => {
+  try {
+    const parsed = new URL(value);
+    return parsed.hostname === 'localhost' || parsed.hostname === '127.0.0.1';
+  } catch {
+    return false;
+  }
+};
+
 const getSiteBaseUrl = (override?: string): string => {
   const candidates = [
     override,
@@ -112,6 +132,14 @@ const getSiteBaseUrl = (override?: string): string => {
 
   for (const candidate of candidates) {
     if (isAbsoluteHttpUrl(candidate)) {
+      if (shouldRequireAbsoluteSeoUrls() && isProduction() && isLocalhostBaseUrl(candidate)) {
+        throw new Error(
+          [
+            'SITE_BASE_URL (or fallback URL) is set to localhost in production, which would generate invalid canonical/OG URLs.',
+            'Set SITE_BASE_URL to your public domain, for example https://www.example.com.',
+          ].join(' '),
+        );
+      }
       return candidate;
     }
   }
@@ -141,6 +169,19 @@ const toAbsoluteUrl = (value: string, siteBaseUrl: string): string => {
 
   const normalizedPath = trimmed.startsWith('/') ? trimmed : `/${trimmed}`;
   return siteBaseUrl ? `${siteBaseUrl}${normalizedPath}` : normalizedPath;
+};
+
+const isAllowedUrl = (value: string): boolean => {
+  return /^https?:\/\//i.test(value) || value.startsWith('/');
+};
+
+const sanitizeUrl = (value: string): string => {
+  const trimmed = value.trim();
+  if (!trimmed) {
+    return '';
+  }
+
+  return isAllowedUrl(trimmed) ? trimmed : '';
 };
 
 const getCanonicalUrl = (article: SeoArticle, siteBaseUrl: string): string => {
@@ -267,7 +308,7 @@ const parseBreadcrumbItems = (raw?: string): BreadcrumbItem[] => {
     }
     const row = item as Record<string, unknown>;
     const name = String(row.name ?? row.title ?? row.label ?? '').trim();
-    const url = String(row.url ?? row.path ?? '').trim();
+    const url = sanitizeUrl(String(row.url ?? row.path ?? ''));
     if (!name || !url) {
       return;
     }
@@ -283,14 +324,28 @@ const parseInternalLinks = (raw?: string): InternalLinkItem[] => {
     return [];
   }
 
+  const toAnchorFromUrl = (url: string): string => {
+    const cleaned = url.trim().replace(/^https?:\/\/[^/]+/i, '');
+    const lastSegment = cleaned.split('/').filter(Boolean).pop() ?? cleaned;
+    const text = lastSegment.replace(/[-_]+/g, ' ').trim();
+    if (!text) {
+      return 'Related Link';
+    }
+    return text
+      .split(' ')
+      .filter(Boolean)
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
+  };
+
   const links: InternalLinkItem[] = [];
   parsed.forEach((item) => {
     if (typeof item === 'string') {
-      const url = item.trim();
+      const url = sanitizeUrl(item);
       if (!url) {
         return;
       }
-      links.push({ anchor: url.replace(/^https?:\/\/[^/]+/i, '').replace(/[-_/]+/g, ' ').trim() || 'Related link', url });
+      links.push({ anchor: toAnchorFromUrl(url), url });
       return;
     }
 
@@ -298,11 +353,11 @@ const parseInternalLinks = (raw?: string): InternalLinkItem[] => {
       return;
     }
     const row = item as Record<string, unknown>;
-    const url = String(row.url ?? row.href ?? '').trim();
+    const url = sanitizeUrl(String(row.url ?? row.href ?? ''));
     if (!url) {
       return;
     }
-    const anchor = String(row.anchor ?? row.text ?? row.label ?? '').trim() || 'Related link';
+    const anchor = String(row.anchor ?? row.text ?? row.label ?? '').trim() || toAnchorFromUrl(url);
     links.push({ anchor, url });
   });
 
@@ -407,6 +462,8 @@ const buildArticleSchemas = (
   const title = article.h1 || article.title_tag || article.slug;
 
   if (article.schema_enable_article ?? true) {
+    const datePublished = toIsoDate(article.publish_date);
+    const dateModified = toIsoDate(article.update_date || article.publish_date);
     schemas.push({
       '@context': 'https://schema.org',
       '@type': article.schema_primary_type || 'BlogPosting',
@@ -414,8 +471,8 @@ const buildArticleSchemas = (
       url: canonicalUrl,
       headline: title,
       description: article.meta_description || article.excerpt || article.intro_lede || title,
-      datePublished: article.publish_date || undefined,
-      dateModified: article.update_date || article.publish_date || undefined,
+      datePublished: datePublished ?? undefined,
+      dateModified: dateModified ?? undefined,
       inLanguage: 'en-US',
       image: article.featured_image_url ? toAbsoluteUrl(article.featured_image_url, siteBaseUrl) : undefined,
       articleSection: article.category_slug || undefined,
@@ -878,6 +935,8 @@ const buildPostPageHtml = ({
   })();
 
   const structuredData = buildArticleSchemas(article, canonicalUrl, faqItems, breadcrumbItems, siteBaseUrl);
+  const publishedTime = toIsoDate(article.publish_date);
+  const modifiedTime = toIsoDate(article.update_date || article.publish_date);
   const headMarkup = renderHead({
     title: article.title_tag || title,
     description,
@@ -887,8 +946,8 @@ const buildPostPageHtml = ({
     ogType: 'article',
     ogImageUrl: toAbsoluteUrl(article.featured_image_url || '/arizona-home-1.jpg', siteBaseUrl),
     ogImageAlt: article.featured_image_alt || title,
-    publishedTime: article.publish_date,
-    modifiedTime: article.update_date || article.publish_date,
+    publishedTime,
+    modifiedTime,
     articleSection: article.category_slug,
     structuredData,
   });
@@ -1015,13 +1074,30 @@ const writeHtmlPage = async (targetPath: string, html: string): Promise<void> =>
   await writeFile(targetPath, html, 'utf8');
 };
 
+const pathExists = async (targetPath: string): Promise<boolean> => {
+  try {
+    await access(targetPath);
+    return true;
+  } catch {
+    return false;
+  }
+};
+
 export const generateStaticBlogPages = async (
   options: GenerateStaticBlogOptions = {},
 ): Promise<StaticGenerationResult> => {
-  if (String(process.env.SKIP_STATIC_BLOG_GENERATION ?? '').trim() === '1') {
+  const shouldSkipGeneration = String(process.env.SKIP_STATIC_BLOG_GENERATION ?? '').trim() === '1';
+  if (shouldSkipGeneration && isProduction()) {
+    throw new Error('SKIP_STATIC_BLOG_GENERATION=1 is not allowed in production');
+  }
+
+  if (shouldSkipGeneration) {
     return {
       outputDir: options.outputDir ?? path.join(CLIENT_DIR, 'public/blog'),
       cssOutputPath: options.cssOutputPath ?? path.join(CLIENT_DIR, 'public/blog-static.css'),
+      mirrorOutputDir: options.mirrorOutputDir,
+      mirrorCssOutputPath: options.mirrorCssOutputPath,
+      mirroredToDist: false,
       postCount: 0,
       categoryCount: 0,
     };
@@ -1029,6 +1105,14 @@ export const generateStaticBlogPages = async (
 
   const outputDir = options.outputDir ?? path.join(CLIENT_DIR, 'public/blog');
   const cssOutputPath = options.cssOutputPath ?? path.join(CLIENT_DIR, 'public/blog-static.css');
+  const distRoot = path.join(CLIENT_DIR, 'dist');
+  const shouldMirror = shouldMirrorDistOutput() && (await pathExists(distRoot));
+  const mirrorOutputDir = shouldMirror
+    ? options.mirrorOutputDir ?? path.join(CLIENT_DIR, 'dist/blog')
+    : undefined;
+  const mirrorCssOutputPath = shouldMirror
+    ? options.mirrorCssOutputPath ?? path.join(CLIENT_DIR, 'dist/blog-static.css')
+    : undefined;
   const siteBaseUrl = getSiteBaseUrl(options.siteBaseUrl);
   const siteName = options.siteName ?? process.env.VITE_SITE_NAME ?? DEFAULT_SITE_NAME;
 
@@ -1039,6 +1123,10 @@ export const generateStaticBlogPages = async (
 
   await rm(outputDir, { recursive: true, force: true });
   await ensureDir(outputDir);
+  if (mirrorOutputDir) {
+    await rm(mirrorOutputDir, { recursive: true, force: true });
+    await ensureDir(mirrorOutputDir);
+  }
 
   const indexHtml = buildIndexPageHtml({
     posts: postIndex,
@@ -1047,6 +1135,9 @@ export const generateStaticBlogPages = async (
     siteName,
   });
   await writeHtmlPage(path.join(outputDir, 'index.html'), indexHtml);
+  if (mirrorOutputDir) {
+    await writeHtmlPage(path.join(mirrorOutputDir, 'index.html'), indexHtml);
+  }
 
   for (const post of posts) {
     const postHtml = buildPostPageHtml({
@@ -1056,10 +1147,16 @@ export const generateStaticBlogPages = async (
       siteName,
     });
     await writeHtmlPage(path.join(outputDir, post.slug, 'index.html'), postHtml);
+    if (mirrorOutputDir) {
+      await writeHtmlPage(path.join(mirrorOutputDir, post.slug, 'index.html'), postHtml);
+    }
   }
 
   const cssBundle = await buildCssBundle();
   await writeFile(cssOutputPath, cssBundle, 'utf8');
+  if (mirrorCssOutputPath) {
+    await writeFile(mirrorCssOutputPath, cssBundle, 'utf8');
+  }
 
   const categories = new Set(
     postIndex.map((post) => post.category_slug?.trim()).filter((value): value is string => Boolean(value)),
@@ -1068,6 +1165,9 @@ export const generateStaticBlogPages = async (
   return {
     outputDir,
     cssOutputPath,
+    mirrorOutputDir,
+    mirrorCssOutputPath,
+    mirroredToDist: Boolean(mirrorOutputDir),
     postCount: posts.length,
     categoryCount: categories.size,
   };

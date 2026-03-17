@@ -8,22 +8,33 @@ const THIS_FILE = fileURLToPath(import.meta.url);
 const SERVER_DIR = path.resolve(path.dirname(THIS_FILE), '..', '..');
 const REPO_ROOT = path.resolve(SERVER_DIR, '..');
 
-const BLOG_ROOT_CANDIDATES = [
-  path.join(REPO_ROOT, 'client', 'dist', 'blog'),
-  path.join(REPO_ROOT, 'client', 'public', 'blog'),
-];
+type CandidatePath = {
+  label: 'public' | 'dist';
+  filePath: string;
+};
 
-const BLOG_CSS_CANDIDATES = [
-  path.join(REPO_ROOT, 'client', 'dist', 'blog-static.css'),
-  path.join(REPO_ROOT, 'client', 'public', 'blog-static.css'),
+const BLOG_ROOT_CANDIDATES = {
+  public: path.join(REPO_ROOT, 'client', 'public', 'blog'),
+  dist: path.join(REPO_ROOT, 'client', 'dist', 'blog'),
+} as const;
+
+const BLOG_CSS_CANDIDATES: CandidatePath[] = [
+  {
+    label: 'public',
+    filePath: path.join(REPO_ROOT, 'client', 'public', 'blog-static.css'),
+  },
+  {
+    label: 'dist',
+    filePath: path.join(REPO_ROOT, 'client', 'dist', 'blog-static.css'),
+  },
 ];
 
 const isSafeSlug = (value: string): boolean => /^[a-z0-9][a-z0-9-_]*$/i.test(value);
 
-const findFirstExistingPath = async (candidates: string[]): Promise<string | null> => {
+const findFirstExistingPath = async (candidates: CandidatePath[]): Promise<CandidatePath | null> => {
   for (const candidate of candidates) {
     try {
-      await access(candidate);
+      await access(candidate.filePath);
       return candidate;
     } catch {
       // Continue searching.
@@ -35,16 +46,18 @@ const findFirstExistingPath = async (candidates: string[]): Promise<string | nul
 
 const sendFirstExistingFile = async (
   res: Response,
-  candidates: string[],
+  candidates: CandidatePath[],
   cacheControl: string,
 ): Promise<boolean> => {
-  const filePath = await findFirstExistingPath(candidates);
-  if (!filePath) {
+  const candidate = await findFirstExistingPath(candidates);
+  if (!candidate) {
     return false;
   }
 
+  res.setHeader('X-Blog-Render-Mode', 'static-html');
+  res.setHeader('X-Static-Blog-Source', candidate.label);
   res.setHeader('Cache-Control', cacheControl);
-  res.sendFile(filePath);
+  res.sendFile(candidate.filePath);
   return true;
 };
 
@@ -62,7 +75,16 @@ staticBlogPagesRouter.get('/blog-static.css', async (_req: Request, res: Respons
 });
 
 staticBlogPagesRouter.get('/blog', async (_req: Request, res: Response, next) => {
-  const candidates = BLOG_ROOT_CANDIDATES.map((root) => path.join(root, 'index.html'));
+  const candidates: CandidatePath[] = [
+    {
+      label: 'public',
+      filePath: path.join(BLOG_ROOT_CANDIDATES.public, 'index.html'),
+    },
+    {
+      label: 'dist',
+      filePath: path.join(BLOG_ROOT_CANDIDATES.dist, 'index.html'),
+    },
+  ];
   const sent = await sendFirstExistingFile(
     res,
     candidates,
@@ -93,7 +115,16 @@ staticBlogPagesRouter.get('/blog/:slug', async (req: Request, res: Response, nex
     return;
   }
 
-  const candidates = BLOG_ROOT_CANDIDATES.map((root) => path.join(root, slug, 'index.html'));
+  const candidates: CandidatePath[] = [
+    {
+      label: 'public',
+      filePath: path.join(BLOG_ROOT_CANDIDATES.public, slug, 'index.html'),
+    },
+    {
+      label: 'dist',
+      filePath: path.join(BLOG_ROOT_CANDIDATES.dist, slug, 'index.html'),
+    },
+  ];
   const sent = await sendFirstExistingFile(
     res,
     candidates,

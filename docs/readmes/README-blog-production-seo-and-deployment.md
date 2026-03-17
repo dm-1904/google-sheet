@@ -41,6 +41,7 @@ Incorrect:
 
 - `www.desertvalleyhomesearch.com`
 - `https://www.desertvalleyhomesearch.com/`
+- `http://localhost:5173` (never use localhost in production)
 
 ## 3. Required environment variables for production blog SEO
 
@@ -48,11 +49,12 @@ In `server/.env` (and production env settings), set:
 
 1. `SITE_BASE_URL=https://www.yourdomain.com`
 2. `STATIC_BLOG_REQUIRE_ABSOLUTE_URLS=1`
-3. `BLOG_REVALIDATE_REQUIRE_SECRET=1`
-4. `BLOG_REVALIDATE_SECRET=<long-random-secret>`
-5. `SERVE_STATIC_BLOG_PAGES=1`
-6. `GOOGLE_SHEETS_SPREADSHEET_ID=<your-sheet-id>`
-7. Google credentials:
+3. `STATIC_BLOG_MIRROR_DIST=1`
+4. `BLOG_REVALIDATE_REQUIRE_SECRET=1`
+5. `BLOG_REVALIDATE_SECRET=<long-random-secret>`
+6. `SERVE_STATIC_BLOG_PAGES=1`
+7. `GOOGLE_SHEETS_SPREADSHEET_ID=<your-sheet-id>`
+8. Google credentials:
    - `GOOGLE_APPLICATION_CREDENTIALS=/absolute/path/to/key.json`
    - or `GOOGLE_SERVICE_ACCOUNT_KEY={...}`
 
@@ -69,6 +71,12 @@ When you run the generation command, the project creates real HTML pages:
 - `client/public/blog/index.html`
 - `client/public/blog/<slug>/index.html`
 - `client/public/blog-static.css`
+
+If `client/dist` already exists, generation also mirrors to:
+
+- `client/dist/blog/index.html`
+- `client/dist/blog/<slug>/index.html`
+- `client/dist/blog-static.css`
 
 Command:
 
@@ -106,8 +114,11 @@ If you run the Node server in production:
 
 - `/blog` and `/blog/:slug` are served from generated static files first.
 - Static assets are served from `client/dist` first (then `client/public` fallback).
-- Server checks `client/dist/blog` first, then `client/public/blog` as fallback.
+- Blog HTML checks `client/public/blog` first, then `client/dist/blog` as fallback.
 - Controlled by `SERVE_STATIC_BLOG_PAGES=1`.
+- Response headers confirm static serving:
+  - `X-Blog-Render-Mode: static-html`
+  - `X-Static-Blog-Source: public` or `dist`
 
 If you use static hosting/CDN:
 
@@ -131,6 +142,13 @@ Check in browser:
    - `<meta property="og:image" content="https://...">`
 
 All should be full absolute URLs with your real domain.
+
+Also verify static delivery:
+
+1. Open DevTools -> Network.
+2. Click the blog page request.
+3. Confirm response headers include:
+   - `X-Blog-Render-Mode: static-html`
 
 ## 8. Google Sheets update flow (how content changes reach the site)
 
@@ -157,6 +175,7 @@ Status check endpoint:
 - `GET /api/blog/revalidate/status`
 
 This tells you if secret and deploy hook are configured.
+It also shows whether static generation is accidentally disabled.
 
 ## 9. Publishing a new blog post from Google Sheets
 
@@ -207,7 +226,8 @@ How to get stronger internal linking:
 2. Confirm slug is correct and unique.
 3. Run build or revalidate flow again.
 4. Hard refresh browser (`Cmd+Shift+R` on Mac).
-5. Check server logs for Google API/permission errors.
+5. Confirm `SKIP_STATIC_BLOG_GENERATION` is not set to `1` in production.
+6. Check server logs for Google API/permission errors.
 
 ### B) Canonical URL is wrong or relative
 
@@ -215,6 +235,7 @@ How to get stronger internal linking:
 2. Ensure it starts with `https://` and has no trailing slash.
 3. Rebuild/revalidate.
 4. Re-check page source.
+5. If a sheet row still contains placeholder canonical domains (like `yourdomain.com` or `example.com`), the app now ignores those placeholders and falls back to the site URL + slug.
 
 ### C) OG URL/image is wrong
 
@@ -227,8 +248,9 @@ How to get stronger internal linking:
 
 1. Confirm generated files exist in deploy artifact (`dist/blog/...`).
 2. If using Node server, set `SERVE_STATIC_BLOG_PAGES=1`.
-3. Check hosting rewrites so `/blog` and `/blog/:slug` are not always redirected to SPA `index.html`.
-4. Re-deploy.
+3. Confirm response headers include `X-Blog-Render-Mode: static-html`.
+4. Check hosting rewrites so `/blog` and `/blog/:slug` are not always redirected to SPA `index.html`.
+5. Re-deploy.
 
 ### E) Missing related posts
 

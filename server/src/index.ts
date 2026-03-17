@@ -41,9 +41,9 @@ app.use('/api', seoRouter);
 app.use('/api', staticBlogRouter);
 
 if (shouldServeStaticBlogPages) {
+  app.use(staticBlogPagesRouter);
   app.use(express.static(clientDistDir, { index: false }));
   app.use(express.static(clientPublicDir, { index: false }));
-  app.use(staticBlogPagesRouter);
 }
 
 app.listen(port, () => {
