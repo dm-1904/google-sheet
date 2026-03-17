@@ -105,14 +105,27 @@ export const BlogPost = () => {
       });
     }
 
-    const currentCategory = data.category_slug?.trim();
-    if (!currentCategory) {
-      return [];
+    const currentCategory = data.category_slug?.trim().toLowerCase();
+    if (currentCategory) {
+      const sameCategory = postIndex.filter(
+        (post) => post.slug !== data.slug && post.category_slug?.trim().toLowerCase() === currentCategory,
+      );
+      if (sameCategory.length > 0) {
+        return sameCategory.slice(0, 3);
+      }
     }
 
-    return postIndex
-      .filter((post) => post.slug !== data.slug && post.category_slug?.trim() === currentCategory)
-      .slice(0, 3);
+    const currentCity = data.primary_city?.trim().toLowerCase();
+    if (currentCity) {
+      const sameCity = postIndex.filter(
+        (post) => post.slug !== data.slug && post.primary_city?.trim().toLowerCase() === currentCity,
+      );
+      if (sameCity.length > 0) {
+        return sameCity.slice(0, 3);
+      }
+    }
+
+    return postIndex.filter((post) => post.slug !== data.slug).slice(0, 3);
   }, [data, postIndex]);
 
   if (!slug) {

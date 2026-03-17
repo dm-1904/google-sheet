@@ -2,6 +2,10 @@
 
 This project now supports static blog page generation from Google Sheets rows.
 
+For a non-technical step-by-step version, use:
+
+- `docs/readmes/README-blog-production-seo-and-deployment.md`
+
 ## Architecture Chosen
 
 - Keep existing React + Express architecture.
@@ -25,6 +29,7 @@ Implementation:
 
 - Script reads Google Sheets via existing read-only integration.
 - It maps/normalizes rows through the current content mapper.
+- It requires an absolute site URL (`SITE_BASE_URL`) by default to avoid relative canonical/OG output.
 - It writes static files to:
   - `client/public/blog/index.html`
   - `client/public/blog/<slug>/index.html`
@@ -54,12 +59,17 @@ This ensures generated blog pages are always up-to-date at build time.
 - Endpoint: `POST /api/blog/revalidate`
 - Header auth (recommended): `x-revalidate-secret: <BLOG_REVALIDATE_SECRET>`
 - Query fallback: `?secret=<BLOG_REVALIDATE_SECRET>`
+- Status endpoint: `GET /api/blog/revalidate/status`
 
 What it does:
 
 1. Invalidates server post cache.
 2. Regenerates static blog HTML locally.
 3. Optionally triggers deploy build hook if `DEPLOY_BUILD_HOOK_URL` is set.
+
+Production note:
+
+- In production, `BLOG_REVALIDATE_SECRET` must be set or the revalidation endpoint returns an error.
 
 ## Google Sheet Headers (Current)
 
@@ -116,6 +126,8 @@ Priority:
 
 1. `related_slugs` (explicit)
 2. Same-category fallback (`category_slug`, up to 3)
+3. Same-city fallback (`primary_city`, up to 3)
+4. Latest posts fallback (up to 3)
 
 ## FAQ Rule
 
@@ -186,15 +198,18 @@ Required for generation:
 
 - `GOOGLE_SHEETS_SPREADSHEET_ID`
 - Google credentials (`GOOGLE_APPLICATION_CREDENTIALS` or `GOOGLE_SERVICE_ACCOUNT_KEY`)
+- `SITE_BASE_URL` (absolute URL such as `https://www.yourdomain.com`)
 
 Recommended:
 
-- `SITE_BASE_URL` (for canonical/absolute URLs)
+- `STATIC_BLOG_REQUIRE_ABSOLUTE_URLS=1` (default behavior: fail generation if absolute site URL is missing)
 - `GOOGLE_SHEETS_TAB_NAME`
 - `GOOGLE_SHEETS_RANGE` (default now `A1:Z`)
+- `SERVE_STATIC_BLOG_PAGES=1` (serve generated static blog pages from the Node server when available)
 
 Optional revalidation/deploy:
 
+- `BLOG_REVALIDATE_REQUIRE_SECRET=1` (recommended, default behavior)
 - `BLOG_REVALIDATE_SECRET`
 - `DEPLOY_BUILD_HOOK_URL`
 
@@ -206,4 +221,5 @@ Optional local skip:
 
 - Blog is now statically generated, but the rest of the site remains SPA.
 - Direct browser requests to blog routes should hit generated HTML in static hosting environments.
+- When using the Node server, static assets are served from `client/dist` (then `client/public`) and `/blog` + `/blog/:slug` are served from generated blog files.
 - If your host does not serve nested `index.html` directories for `/blog/:slug`, configure rewrites accordingly.

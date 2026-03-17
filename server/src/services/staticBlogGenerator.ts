@@ -65,8 +65,68 @@ type StaticGenerationResult = {
   categoryCount: number;
 };
 
+const parseBoolean = (value: string | undefined, fallback: boolean): boolean => {
+  if (!value?.trim()) {
+    return fallback;
+  }
+
+  const normalized = value.trim().toLowerCase();
+  if (['1', 'true', 'yes', 'y', 'on'].includes(normalized)) {
+    return true;
+  }
+  if (['0', 'false', 'no', 'n', 'off'].includes(normalized)) {
+    return false;
+  }
+
+  return fallback;
+};
+
+const normalizeBaseUrl = (value: string): string => value.trim().replace(/\/$/, '');
+
+const isAbsoluteHttpUrl = (value: string): boolean => {
+  if (!value) {
+    return false;
+  }
+
+  try {
+    const parsed = new URL(value);
+    return parsed.protocol === 'https:' || parsed.protocol === 'http:';
+  } catch {
+    return false;
+  }
+};
+
+const shouldRequireAbsoluteSeoUrls = (): boolean => {
+  return parseBoolean(process.env.STATIC_BLOG_REQUIRE_ABSOLUTE_URLS, true);
+};
+
 const getSiteBaseUrl = (override?: string): string => {
-  return (override ?? process.env.SITE_BASE_URL ?? '').trim().replace(/\/$/, '');
+  const candidates = [
+    override,
+    process.env.SITE_BASE_URL,
+    process.env.VITE_SITE_URL,
+    process.env.CLIENT_ORIGIN,
+  ]
+    .map((value) => normalizeBaseUrl(value ?? ''))
+    .filter(Boolean);
+
+  for (const candidate of candidates) {
+    if (isAbsoluteHttpUrl(candidate)) {
+      return candidate;
+    }
+  }
+
+  if (shouldRequireAbsoluteSeoUrls()) {
+    throw new Error(
+      [
+        'Static blog generation requires an absolute site URL for canonical and OG tags.',
+        'Set SITE_BASE_URL (recommended) or VITE_SITE_URL to a full URL like https://www.example.com.',
+        'If you intentionally want relative URLs for local testing, set STATIC_BLOG_REQUIRE_ABSOLUTE_URLS=0.',
+      ].join(' '),
+    );
+  }
+
+  return '';
 };
 
 const toAbsoluteUrl = (value: string, siteBaseUrl: string): string => {
@@ -782,12 +842,40 @@ const buildPostPageHtml = ({
     .filter((slug) => slug !== article.slug)
     .map((slug) => indexBySlug.get(slug))
     .filter((post): post is SeoArticleIndexItem => Boolean(post));
-  const relatedPosts =
-    explicitRelated.length > 0
-      ? explicitRelated
-      : postIndex
-          .filter((post) => post.slug !== article.slug && post.category_slug?.trim() === article.category_slug?.trim())
-          .slice(0, 3);
+  const relatedPosts = (() => {
+    if (explicitRelated.length > 0) {
+      const seen = new Set<string>();
+      return explicitRelated.filter((post) => {
+        if (seen.has(post.slug)) {
+          return false;
+        }
+        seen.add(post.slug);
+        return true;
+      });
+    }
+
+    const currentCategory = article.category_slug?.trim().toLowerCase();
+    if (currentCategory) {
+      const sameCategory = postIndex.filter(
+        (post) => post.slug !== article.slug && post.category_slug?.trim().toLowerCase() === currentCategory,
+      );
+      if (sameCategory.length > 0) {
+        return sameCategory.slice(0, 3);
+      }
+    }
+
+    const currentCity = article.primary_city?.trim().toLowerCase();
+    if (currentCity) {
+      const sameCity = postIndex.filter(
+        (post) => post.slug !== article.slug && post.primary_city?.trim().toLowerCase() === currentCity,
+      );
+      if (sameCity.length > 0) {
+        return sameCity.slice(0, 3);
+      }
+    }
+
+    return postIndex.filter((post) => post.slug !== article.slug).slice(0, 3);
+  })();
 
   const structuredData = buildArticleSchemas(article, canonicalUrl, faqItems, breadcrumbItems, siteBaseUrl);
   const headMarkup = renderHead({

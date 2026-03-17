@@ -2,6 +2,10 @@
 
 This document covers the current blog SEO implementation for this project.
 
+For deployment and non-technical setup steps, use:
+
+- `docs/readmes/README-blog-production-seo-and-deployment.md`
+
 ## 1. Current Blog SEO Architecture
 
 - Frontend: React + React Router (CSR) with static blog generation support.
@@ -74,6 +78,7 @@ This document covers the current blog SEO implementation for this project.
 - Canonical: `canonical_url` (fallback: `/blog/:slug`).
 - Robots: `meta_robots` (fallback: `index,follow`).
 - Open Graph/Twitter: uses article title/description and featured image.
+- Static generation requires an absolute site URL (`SITE_BASE_URL`) so canonical/OG URLs are absolute in output HTML.
 
 ## 4. Structured Data Generation
 
@@ -88,7 +93,10 @@ This document covers the current blog SEO implementation for this project.
 
 - `internal_links_json` renders a visible "Related Internal Links" section.
 - `related_slugs` renders a visible "Related Posts" section.
-- If `related_slugs` is empty, system falls back to same-category related posts.
+- If `related_slugs` is empty, system falls back in this order:
+  1. Same `category_slug`
+  2. Same `primary_city`
+  3. Latest other posts
 
 ## 6. JSON Field Formats
 
@@ -149,10 +157,11 @@ Should not be indexed:
 
 - Default sheet range now supports additional fields: `A1:Z`.
 - You can set `GOOGLE_SHEETS_RANGE` wider if needed.
+- `SITE_BASE_URL` should be your production site URL (example: `https://www.yourdomain.com`).
+- `STATIC_BLOG_REQUIRE_ABSOLUTE_URLS=1` keeps static generation from outputting relative canonical/OG URLs by mistake.
 
 ## 11. Known Limitations
 
-- React app routes are CSR in-app, but static blog HTML generation is available separately (see `README-static-blog-generation.md`).
-- Absolute canonicals and OG URLs depend on a valid `SITE_BASE_URL` (or browser runtime origin for CSR pages).
-- Related posts depend on available index data and category quality.
+- React app routes are CSR in-app, but static blog HTML generation can be served directly through hosting/server setup.
+- Related links are strongest when `related_slugs`, `internal_links_json`, `category_slug`, and `primary_city` are maintained consistently in Sheets.
 - FAQ schema quality depends on valid `faq_json` or parseable content.

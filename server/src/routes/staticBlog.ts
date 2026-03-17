@@ -5,10 +5,34 @@ import { generateStaticBlogPages } from '../services/staticBlogGenerator.js';
 
 export const staticBlogRouter = Router();
 
-const isAuthorized = (req: Request): boolean => {
-  const configuredSecret = (process.env.BLOG_REVALIDATE_SECRET ?? '').trim();
-  if (!configuredSecret) {
+const isProduction = (): boolean => process.env.NODE_ENV === 'production';
+
+const getConfiguredSecret = (): string => (process.env.BLOG_REVALIDATE_SECRET ?? '').trim();
+
+const parseBoolean = (value: string | undefined, fallback: boolean): boolean => {
+  if (!value?.trim()) {
+    return fallback;
+  }
+
+  const normalized = value.trim().toLowerCase();
+  if (['1', 'true', 'yes', 'y', 'on'].includes(normalized)) {
     return true;
+  }
+  if (['0', 'false', 'no', 'n', 'off'].includes(normalized)) {
+    return false;
+  }
+
+  return fallback;
+};
+
+const shouldRequireSecret = (): boolean => {
+  return parseBoolean(process.env.BLOG_REVALIDATE_REQUIRE_SECRET, isProduction());
+};
+
+const isAuthorized = (req: Request): boolean => {
+  const configuredSecret = getConfiguredSecret();
+  if (!configuredSecret) {
+    return !shouldRequireSecret();
   }
 
   const headerSecret = String(req.headers['x-revalidate-secret'] ?? '').trim();
@@ -37,7 +61,27 @@ const triggerDeployWebhookIfConfigured = async (): Promise<boolean> => {
   return true;
 };
 
+staticBlogRouter.get('/blog/revalidate/status', (_req: Request, res: Response) => {
+  const configuredSecret = getConfiguredSecret();
+  const deployHookUrl = (process.env.DEPLOY_BUILD_HOOK_URL ?? '').trim();
+
+  res.json({
+    ok: true,
+    environment: process.env.NODE_ENV ?? 'development',
+    requiresSecret: shouldRequireSecret(),
+    secretConfigured: Boolean(configuredSecret),
+    deployHookConfigured: Boolean(deployHookUrl),
+  });
+});
+
 staticBlogRouter.post('/blog/revalidate', async (req: Request, res: Response) => {
+  if (shouldRequireSecret() && !getConfiguredSecret()) {
+    res.status(503).json({
+      error: 'BLOG_REVALIDATE_SECRET must be set before using this endpoint',
+    });
+    return;
+  }
+
   if (!isAuthorized(req)) {
     res.status(401).json({ error: 'Unauthorized' });
     return;
