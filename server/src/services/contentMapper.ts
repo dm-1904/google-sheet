@@ -243,7 +243,7 @@ const markdownToHtml = (value: string): string => {
     if (headingMatch) {
       flushParagraph();
       closeLists();
-      const level = headingMatch[1].length;
+      const level = Math.max(2, headingMatch[1].length);
       html.push(`<h${level}>${renderInlineMarkdown(headingMatch[2])}</h${level}>`);
       continue;
     }

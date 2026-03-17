@@ -3,6 +3,7 @@ import dotenv from 'dotenv';
 import express from 'express';
 import type { Request, Response } from 'express';
 import { postsRouter } from './routes/posts.js';
+import { seoRouter } from './routes/seo.js';
 
 dotenv.config();
 
@@ -26,6 +27,7 @@ app.get('/api/health', (_req: Request, res: Response) => {
 });
 
 app.use('/api/posts', postsRouter);
+app.use('/api', seoRouter);
 
 app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`);

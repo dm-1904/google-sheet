@@ -54,10 +54,16 @@ img {
 }
 
 .nav-logo-img {
-  /* width: min(40%, 430px); */
-  width: 55%;
+  width: 100%;
   max-width: 100%;
   height: auto;
+}
+
+.nav-logo-link {
+  display: block;
+  width: 55%;
+  max-width: 100%;
+  cursor: default;
 }
 
 .presented-by {
@@ -135,6 +141,10 @@ img {
   }
 
   .nav-logo-img {
+    width: 100%;
+  }
+
+  .nav-logo-link {
     width: 54%;
   }
 
@@ -159,7 +169,7 @@ img {
     gap: 0.45rem;
   }
 
-  .nav-logo-img {
+  .nav-logo-link {
     width: 54%;
     min-width: 130px;
   }
@@ -249,7 +259,7 @@ img {
     gap: 0.35rem;
   }
 
-  .nav-logo-img {
+  .nav-logo-link {
     min-width: 118px;
   }
 
@@ -264,7 +274,7 @@ img {
     gap: 0.3rem;
   }
 
-  .nav-logo-img {
+  .nav-logo-link {
     min-width: 106px;
   }
 

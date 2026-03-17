@@ -1,8 +1,8 @@
 import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Helmet } from 'react-helmet-async';
 import { Link, useParams } from 'react-router-dom';
 import { fetchPostBySlug } from '../api/posts';
+import { SeoHead } from '../components/SeoHead';
 import {
   buildStructuredData,
   getCanonicalUrl,
@@ -83,20 +83,24 @@ export const BlogPost = () => {
   const robotsContent = getRobotsMetaContent(data);
   const publishedAt = formatDate(data.publish_date);
   const updatedAt = formatDate(data.update_date);
+  const titleTag = data.title_tag || title;
+  const description = data.meta_description || data.intro_lede || title;
 
   return (
     <main className="blog-post">
-      <Helmet>
-        <title>{data.title_tag || title}</title>
-        <meta name="description" content={data.meta_description || title} />
-        <meta name="robots" content={robotsContent} />
-        <link rel="canonical" href={canonicalUrl} />
-        {structuredData.map((schema, index) => (
-          <script key={`schema-${index}`} type="application/ld+json">
-            {JSON.stringify(schema)}
-          </script>
-        ))}
-      </Helmet>
+      <SeoHead
+        title={titleTag}
+        description={description}
+        canonicalUrl={canonicalUrl}
+        robots={robotsContent}
+        ogType="article"
+        ogImage={data.featured_image_url}
+        ogImageAlt={data.featured_image_alt || title}
+        publishedTime={data.publish_date}
+        modifiedTime={data.update_date || data.publish_date}
+        articleSection={data.category_slug}
+        structuredData={structuredData}
+      />
 
       <nav aria-label="Breadcrumb">
         <ol className="blog-post__breadcrumbs">
@@ -150,7 +154,13 @@ export const BlogPost = () => {
           <ul>
             {internalLinks.map((item, index) => (
               <li key={`${item.url}-${index}`}>
-                <a href={item.url}>{item.anchor}</a>
+                {isExternalUrl(item.url) ? (
+                  <a href={item.url} rel="noopener noreferrer">
+                    {item.anchor}
+                  </a>
+                ) : (
+                  <Link to={item.url}>{item.anchor}</Link>
+                )}
               </li>
             ))}
           </ul>

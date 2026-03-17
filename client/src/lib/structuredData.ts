@@ -1,4 +1,5 @@
 import type { SeoArticle } from '../types/post';
+import { toAbsoluteUrl } from './seo';
 
 type SchemaObject = Record<string, unknown>;
 
@@ -18,21 +19,7 @@ type FaqItem = {
 };
 
 const ARTICLE_AUTHOR_NAME = 'Damon Ryon';
-const siteBaseUrl = (import.meta.env.VITE_SITE_URL ?? '').trim().replace(/\/$/, '');
-
-const toAbsoluteUrl = (value: string): string => {
-  const trimmed = value.trim();
-  if (!trimmed) {
-    return '';
-  }
-
-  if (/^https?:\/\//i.test(trimmed)) {
-    return trimmed;
-  }
-
-  const normalizedPath = trimmed.startsWith('/') ? trimmed : `/${trimmed}`;
-  return siteBaseUrl ? `${siteBaseUrl}${normalizedPath}` : normalizedPath;
-};
+const ARTICLE_PUBLISHER_NAME = 'Deal Landers Arizona Realty';
 
 const cleanObject = (input: SchemaObject): SchemaObject => {
   const output: SchemaObject = {};
@@ -190,15 +177,21 @@ const buildArticleSchema = (article: SeoArticle, canonicalUrl: string): SchemaOb
     '@context': 'https://schema.org',
     '@type': article.schema_primary_type || 'BlogPosting',
     mainEntityOfPage: canonicalUrl,
+    url: canonicalUrl,
     headline: getDisplayTitle(article),
     description: article.meta_description || article.intro_lede || getDisplayTitle(article),
     datePublished: article.publish_date || undefined,
     dateModified: article.update_date || article.publish_date || undefined,
+    inLanguage: 'en-US',
     image: article.featured_image_url ? toAbsoluteUrl(article.featured_image_url) : undefined,
     articleSection: article.category_slug || undefined,
     author: cleanObject({
       '@type': 'Person',
       name: ARTICLE_AUTHOR_NAME,
+    }),
+    publisher: cleanObject({
+      '@type': 'Organization',
+      name: ARTICLE_PUBLISHER_NAME,
     }),
   });
 };

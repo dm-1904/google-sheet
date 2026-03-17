@@ -1,18 +1,25 @@
-import { Helmet } from 'react-helmet-async';
+import { SeoHead } from '../components/SeoHead';
 import { GuideCard } from '../components/GuideCard';
 import '../css/NeighborhoodGuides.css';
+import { buildBreadcrumbListSchema } from '../lib/seo';
 import { NEIGHBORHOOD_GUIDE_CARDS } from '../lib/neighborhoodGuides';
 
 export const NeighborhoodGuidesPage = () => {
+  const schema = [
+    buildBreadcrumbListSchema([
+      { name: 'Home', url: '/' },
+      { name: 'Neighborhood Guides', url: '/neighborhood-guides' },
+    ]),
+  ];
+
   return (
     <main className="guides-page">
-      <Helmet>
-        <title>Neighborhood Guides | Surprise & West Valley Arizona</title>
-        <meta
-          name="description"
-          content="Explore neighborhood and community guides across Surprise and the West Valley, including city overviews and retirement community hubs."
-        />
-      </Helmet>
+      <SeoHead
+        title="Neighborhood Guides | Surprise & West Valley Arizona"
+        description="Explore neighborhood and community guides across Surprise and the West Valley, including city overviews and retirement community hubs."
+        canonicalPath="/neighborhood-guides"
+        structuredData={schema}
+      />
 
       <section className="guides-page__hero">
         <h1>Neighborhood Guides</h1>

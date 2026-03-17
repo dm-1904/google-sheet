@@ -1,19 +1,27 @@
-import { Helmet } from 'react-helmet-async';
 import { Link } from 'react-router-dom';
 import { GuideCard } from '../components/GuideCard';
+import { SeoHead } from '../components/SeoHead';
 import '../css/NeighborhoodGuides.css';
+import { buildBreadcrumbListSchema } from '../lib/seo';
 import { RETIREMENT_COMMUNITY_CARDS } from '../lib/neighborhoodGuides';
 
 export const RetirementCommunitiesPage = () => {
+  const schema = [
+    buildBreadcrumbListSchema([
+      { name: 'Home', url: '/' },
+      { name: 'Neighborhood Guides', url: '/neighborhood-guides' },
+      { name: 'Retirement Communities', url: '/neighborhood-guides/retirement-communities' },
+    ]),
+  ];
+
   return (
     <main className="retirement-guides-page">
-      <Helmet>
-        <title>Retirement Communities | West Valley Neighborhood Guides</title>
-        <meta
-          name="description"
-          content="Browse retirement community guides across Surprise and the West Valley, including Sun City, Sun City West, PebbleCreek, and more."
-        />
-      </Helmet>
+      <SeoHead
+        title="Retirement Communities | West Valley Neighborhood Guides"
+        description="Browse retirement community guides across Surprise and the West Valley, including Sun City, Sun City West, PebbleCreek, and more."
+        canonicalPath="/neighborhood-guides/retirement-communities"
+        structuredData={schema}
+      />
 
       <h1>Retirement Communities</h1>
       <Link className="guide-detail-page__back-link" to="/neighborhood-guides">

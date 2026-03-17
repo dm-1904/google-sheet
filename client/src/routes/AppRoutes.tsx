@@ -13,6 +13,9 @@ const BlogIndex = lazy(() =>
 const BlogPost = lazy(() =>
   import('../pages/BlogPost').then(({ BlogPost }) => ({ default: BlogPost })),
 );
+const DmcaPage = lazy(() =>
+  import('../pages/DmcaPage').then(({ DmcaPage }) => ({ default: DmcaPage })),
+);
 const LetsConnectPage = lazy(() =>
   import('../pages/LetsConnectPage').then(({ LetsConnectPage }) => ({
     default: LetsConnectPage,
@@ -41,6 +44,12 @@ const RetirementCommunityDetailPage = lazy(() =>
     default: RetirementCommunityDetailPage,
   })),
 );
+const PrivacyPolicyPage = lazy(() =>
+  import('../pages/PrivacyPolicyPage').then(({ PrivacyPolicyPage }) => ({ default: PrivacyPolicyPage })),
+);
+const TermsOfUsePage = lazy(() =>
+  import('../pages/TermsOfUsePage').then(({ TermsOfUsePage }) => ({ default: TermsOfUsePage })),
+);
 
 export const AppRoutes = () => {
   return (
@@ -62,6 +71,9 @@ export const AppRoutes = () => {
         />
         <Route path="/neighborhood-guides/:areaSlug" element={<NeighborhoodGuideDetailPage />} />
         <Route path="/lets-connect" element={<LetsConnectPage />} />
+        <Route path="/terms-of-use" element={<TermsOfUsePage />} />
+        <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
+        <Route path="/dmca" element={<DmcaPage />} />
         <Route path="*" element={<NotFoundPage />} />
       </Route>
     </Routes>

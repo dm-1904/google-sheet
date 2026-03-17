@@ -1,16 +1,24 @@
-import { Helmet } from "react-helmet-async";
-import "../css/AboutPage.css";
+import { SeoHead } from '../components/SeoHead';
+import '../css/AboutPage.css';
+import { buildBreadcrumbListSchema, buildRealEstateAgentSchema } from '../lib/seo';
 
 export const AboutPage = () => {
+  const schema = [
+    buildBreadcrumbListSchema([
+      { name: 'Home', url: '/' },
+      { name: 'About', url: '/about' },
+    ]),
+    buildRealEstateAgentSchema(),
+  ].filter((value): value is Record<string, unknown> => Boolean(value));
+
   return (
     <main className="about-page">
-      <Helmet>
-        <title>About Damon Ryon | Surprise AZ Real Estate Agent</title>
-        <meta
-          name="description"
-          content="Learn more about Damon Ryon, a real estate agent helping buyers and sellers in Surprise Arizona and the West Valley of Phoenix."
-        />
-      </Helmet>
+      <SeoHead
+        title="About Damon Ryon | Surprise AZ Real Estate Agent"
+        description="Learn more about Damon Ryon, a real estate agent helping buyers and sellers in Surprise Arizona and the West Valley of Phoenix."
+        canonicalPath="/about"
+        structuredData={schema}
+      />
 
       <h1>About Damon Ryon | Surprise AZ Real Estate</h1>
 

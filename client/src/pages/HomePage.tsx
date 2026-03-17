@@ -1,6 +1,8 @@
 import { ChangeEvent, FormEvent, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { Link } from 'react-router-dom';
+import { SeoHead } from '../components/SeoHead';
+import { buildRealEstateAgentSchema, buildWebSiteSchema } from '../lib/seo';
 import '../css/HomePage.css';
 import '../css/ContactUs.css';
 
@@ -273,6 +275,9 @@ export const ContactForm = ({ onSubmit }: ContactFormProps) => {
 export const HomePage = () => {
   const [lastSearch, setLastSearch] = useState<SearchFormData | null>(null);
   const [contactSubmitted, setContactSubmitted] = useState(false);
+  const homeSchema = [buildWebSiteSchema(), buildRealEstateAgentSchema()].filter(
+    (value): value is Record<string, unknown> => Boolean(value),
+  );
 
   const handleContactSubmit = (_data: ContactFormData) => {
     setContactSubmitted(true);
@@ -280,6 +285,13 @@ export const HomePage = () => {
 
   return (
     <div className="app-container">
+      <SeoHead
+        title="Surprise AZ Real Estate | Homes in Surprise & West Valley"
+        description="Search homes and local real estate insights for Surprise Arizona and the West Valley of Phoenix with Deal Landers Arizona Realty."
+        canonicalPath="/"
+        ogImage="/arizona-home-1.jpg"
+        structuredData={homeSchema}
+      />
       <Helmet>
         <link rel="preload" as="image" href="/arizona-home-1.jpg" />
       </Helmet>

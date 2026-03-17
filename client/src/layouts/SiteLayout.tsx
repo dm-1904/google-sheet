@@ -1,5 +1,5 @@
 import { Suspense, useEffect, useState } from 'react';
-import { NavLink, Outlet, useLocation } from 'react-router-dom';
+import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
 import { Footer } from '../components/Footer';
 import '../css/SiteLayout.css';
 
@@ -34,15 +34,17 @@ export const SiteLayout = () => {
       <header className="nav-header">
         <div className="nav-box">
           <div className="nav-img-box">
-            <img
-              src="/nav/DesertValleyHomeSearch-com.png"
-              alt="Desert Valley Home Search Logo"
-              className="nav-logo-img"
-              width={1280}
-              height={312}
-              decoding="async"
-              fetchPriority="high"
-            />
+            <Link to="/" className="nav-logo-link" aria-label="Go to home page">
+              <img
+                src="/nav/DesertValleyHomeSearch-com.png"
+                alt="Desert Valley Home Search Logo"
+                className="nav-logo-img"
+                width={1280}
+                height={312}
+                decoding="async"
+                fetchPriority="high"
+              />
+            </Link>
             <div className="nav-name-img-box">
               <img
                 src="/nav/Presented-by.png"

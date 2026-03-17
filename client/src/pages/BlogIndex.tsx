@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useSearchParams } from 'react-router-dom';
 import { fetchPosts } from '../api/posts';
 import { PostCard } from '../components/PostCard';
+import { SeoHead } from '../components/SeoHead';
 import '../css/BlogIndex.css';
 import { formatCategoryLabel } from '../lib/category';
 
@@ -67,8 +68,15 @@ export const BlogIndex = () => {
 
   return (
     <main className="blog-index">
-      <h1>SEO Blog Posts</h1>
-      <p>Content is fetched from a Google Sheet via the API server.</p>
+      <SeoHead
+        title="Surprise & West Valley Real Estate Blog | Desert Valley Home Search"
+        description="Read local real estate guides, market insights, and moving tips for Surprise Arizona and the West Valley of Phoenix."
+        canonicalPath="/blog"
+        noindex={selectedCategory !== ALL_FILTER}
+      />
+
+      <h1>Surprise & West Valley Real Estate Blog</h1>
+      <p>Local market insights, neighborhood guides, and relocation advice for buyers and sellers in the West Valley.</p>
 
       <section className="blog-index__filters" aria-label="Filter posts by category">
         <p className="blog-index__filter-label">Filter by Category:</p>

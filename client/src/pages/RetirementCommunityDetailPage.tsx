@@ -1,6 +1,7 @@
-import { Helmet } from 'react-helmet-async';
 import { Link, useParams } from 'react-router-dom';
+import { SeoHead } from '../components/SeoHead';
 import '../css/NeighborhoodGuides.css';
+import { buildBreadcrumbListSchema } from '../lib/seo';
 import { getRetirementCommunityBySlug } from '../lib/neighborhoodGuides';
 
 export const RetirementCommunityDetailPage = () => {
@@ -10,6 +11,12 @@ export const RetirementCommunityDetailPage = () => {
   if (!community) {
     return (
       <main className="guide-detail-page">
+        <SeoHead
+          title="Retirement Community Guide Not Found"
+          description="The retirement community guide you requested could not be found."
+          canonicalPath="/neighborhood-guides/retirement-communities"
+          noindex
+        />
         <h1>Retirement Community Guide Not Found</h1>
         <p>That retirement community guide route does not exist yet.</p>
         <Link className="guide-detail-page__back-link" to="/neighborhood-guides/retirement-communities">
@@ -21,13 +28,23 @@ export const RetirementCommunityDetailPage = () => {
 
   return (
     <main className="guide-detail-page">
-      <Helmet>
-        <title>{community.title} Guide | Retirement Communities</title>
-        <meta
-          name="description"
-          content={`Placeholder retirement community guide for ${community.title}. Full amenities, housing, and local market insights will be added soon.`}
-        />
-      </Helmet>
+      <SeoHead
+        title={`${community.title} Guide | Retirement Communities`}
+        description={`Placeholder retirement community guide for ${community.title}. Full amenities, housing, and local market insights will be added soon.`}
+        canonicalPath={community.path}
+        noindex
+        structuredData={[
+          buildBreadcrumbListSchema([
+            { name: 'Home', url: '/' },
+            { name: 'Neighborhood Guides', url: '/neighborhood-guides' },
+            {
+              name: 'Retirement Communities',
+              url: '/neighborhood-guides/retirement-communities',
+            },
+            { name: community.title, url: community.path },
+          ]),
+        ]}
+      />
 
       <h1>{community.title}</h1>
       <div className="guide-detail-page__body">

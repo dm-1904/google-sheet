@@ -98,9 +98,9 @@ export const Footer = () => {
           </div>
 
           <div className="footer-disc">
-            <a href="/terms-of-use">TERMS OF USE</a>
-            <a href="/privacy-policy">PRIVACY POLICY</a>
-            <a href="">DMCA</a>
+            <NavLink to="/terms-of-use">TERMS OF USE</NavLink>
+            <NavLink to="/privacy-policy">PRIVACY POLICY</NavLink>
+            <NavLink to="/dmca">DMCA</NavLink>
           </div>
         </div>
       </footer>
