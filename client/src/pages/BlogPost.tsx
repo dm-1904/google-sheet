@@ -1,17 +1,18 @@
 import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link, useParams } from 'react-router-dom';
-import { fetchPostBySlug } from '../api/posts';
+import { fetchPostBySlug, fetchPosts } from '../api/posts';
 import { SeoHead } from '../components/SeoHead';
 import { formatCmsDate } from '../lib/date';
 import {
   buildStructuredData,
   getCanonicalUrl,
+  getVisibleFaqItems,
   getRobotsMetaContent,
   parseBreadcrumbItems,
   parseInternalLinks,
 } from '../lib/structuredData';
-import type { SeoArticle } from '../types/post';
+import type { SeoArticle, SeoArticleIndexItem } from '../types/post';
 import '../css/BlogPost.css';
 
 const POST_AUTHOR_NAME = 'Damon Ryon';
@@ -22,6 +23,29 @@ const getDisplayTitle = (article: SeoArticle): string => {
 
 const isExternalUrl = (value: string): boolean => /^https?:\/\//i.test(value);
 
+const parseRelatedSlugs = (value?: string): string[] => {
+  const trimmed = value?.trim();
+  if (!trimmed) {
+    return [];
+  }
+
+  try {
+    const parsed = JSON.parse(trimmed);
+    if (Array.isArray(parsed)) {
+      return parsed
+        .map((entry) => String(entry ?? '').trim())
+        .filter(Boolean);
+    }
+  } catch {
+    // Fall through to delimiter parsing.
+  }
+
+  return trimmed
+    .split(/[\n,]+/)
+    .map((entry) => entry.trim())
+    .filter(Boolean);
+};
+
 export const BlogPost = () => {
   const { slug } = useParams();
 
@@ -31,6 +55,12 @@ export const BlogPost = () => {
     enabled: Boolean(slug),
     staleTime: 0,
     refetchOnMount: 'always',
+  });
+  const { data: postIndex } = useQuery({
+    queryKey: ['posts'],
+    queryFn: ({ signal }) => fetchPosts({ signal }),
+    staleTime: 60_000,
+    refetchOnMount: false,
   });
 
   const internalLinks = useMemo(
@@ -52,6 +82,38 @@ export const BlogPost = () => {
         ];
   }, [data, title]);
   const structuredData = useMemo(() => (data ? buildStructuredData(data) : []), [data]);
+  const faqItems = useMemo(() => (data ? getVisibleFaqItems(data) : []), [data]);
+  const relatedPosts = useMemo(() => {
+    if (!data || !postIndex || postIndex.length === 0) {
+      return [];
+    }
+
+    const bySlug = new Map(postIndex.map((post) => [post.slug, post] as const));
+    const explicitRelated = parseRelatedSlugs(data.related_slugs)
+      .filter((relatedSlug) => relatedSlug !== data.slug)
+      .map((relatedSlug) => bySlug.get(relatedSlug))
+      .filter((post): post is SeoArticleIndexItem => Boolean(post));
+
+    if (explicitRelated.length > 0) {
+      const seen = new Set<string>();
+      return explicitRelated.filter((post) => {
+        if (seen.has(post.slug)) {
+          return false;
+        }
+        seen.add(post.slug);
+        return true;
+      });
+    }
+
+    const currentCategory = data.category_slug?.trim();
+    if (!currentCategory) {
+      return [];
+    }
+
+    return postIndex
+      .filter((post) => post.slug !== data.slug && post.category_slug?.trim() === currentCategory)
+      .slice(0, 3);
+  }, [data, postIndex]);
 
   if (!slug) {
     return <p>Invalid slug.</p>;
@@ -103,7 +165,9 @@ export const BlogPost = () => {
             <li key={`${item.name}-${index}`}>
               {index < breadcrumbs.length - 1 ? (
                 isExternalUrl(item.url) ? (
-                  <a href={item.url}>{item.name}</a>
+                  <a href={item.url} rel="noopener noreferrer">
+                    {item.name}
+                  </a>
                 ) : (
                   <Link to={item.url}>{item.name}</Link>
                 )
@@ -143,6 +207,18 @@ export const BlogPost = () => {
         <div dangerouslySetInnerHTML={{ __html: data.content_body }} />
       </section>
 
+      {faqItems.length > 0 ? (
+        <section className="blog-post__faq" aria-label="Frequently Asked Questions">
+          <h2>Frequently Asked Questions</h2>
+          {faqItems.map((item, index) => (
+            <article key={`${item.question}-${index}`} className="blog-post__faq-item">
+              <h3>{item.question}</h3>
+              <p>{item.answer}</p>
+            </article>
+          ))}
+        </section>
+      ) : null}
+
       {internalLinks.length > 0 ? (
         <section className="blog-post__internal-links">
           <h2>Related Internal Links</h2>
@@ -158,6 +234,22 @@ export const BlogPost = () => {
                 )}
               </li>
             ))}
+          </ul>
+        </section>
+      ) : null}
+
+      {relatedPosts.length > 0 ? (
+        <section className="blog-post__related">
+          <h2>Related Posts</h2>
+          <ul>
+            {relatedPosts.map((post) => {
+              const relatedTitle = post.h1 || post.title_tag || post.slug;
+              return (
+                <li key={post.slug}>
+                  <Link to={`/blog/${post.slug}`}>{relatedTitle}</Link>
+                </li>
+              );
+            })}
           </ul>
         </section>
       ) : null}

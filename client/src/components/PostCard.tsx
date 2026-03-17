@@ -13,7 +13,7 @@ const PostCardComponent = ({ post }: Props) => {
   const dateValue = post.publish_date || post.update_date;
   const date = formatCmsDate(dateValue);
   const title = post.h1 || post.title_tag || post.slug;
-  const summary = post.intro_lede || post.meta_description;
+  const summary = post.excerpt || post.intro_lede || post.meta_description;
   const href = `/blog/${post.slug}`;
   const categoryLabel = formatCategoryLabel(post.category_slug);
 

@@ -8,13 +8,16 @@ export interface SeoArticle {
   meta_description: string;
   meta_robots?: string;
   h1: string;
+  excerpt?: string;
   intro_lede?: string;
   content_body: string;
   featured_image_url?: string;
   featured_image_alt?: string;
   category_slug?: string;
+  related_slugs?: string;
   internal_links_json?: string;
   breadcrumb_json?: string;
+  faq_json?: string;
   schema_primary_type?: string;
   schema_enable_article?: boolean;
   schema_enable_breadcrumb?: boolean;
@@ -33,6 +36,7 @@ export type SeoArticleIndexItem = Pick<
   | 'title_tag'
   | 'meta_description'
   | 'h1'
+  | 'excerpt'
   | 'intro_lede'
   | 'featured_image_url'
   | 'featured_image_alt'

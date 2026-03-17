@@ -197,6 +197,36 @@ const renderInlineMarkdown = (value: string): string => {
   return output;
 };
 
+const stripHtml = (value: string): string => {
+  return value.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+};
+
+const truncateText = (value: string, maxLength: number): string => {
+  if (value.length <= maxLength) {
+    return value;
+  }
+  return `${value.slice(0, maxLength - 1).trimEnd()}…`;
+};
+
+const resolveExcerpt = (explicitExcerpt: string, introLede: string, contentBody: string): string => {
+  const fromExplicit = explicitExcerpt.trim();
+  if (fromExplicit) {
+    return fromExplicit;
+  }
+
+  const fromLede = introLede.trim();
+  if (fromLede) {
+    return fromLede;
+  }
+
+  const plainTextContent = stripHtml(contentBody);
+  if (!plainTextContent) {
+    return '';
+  }
+
+  return truncateText(plainTextContent, 190);
+};
+
 const normalizeInlineHeadingMarkdown = (value: string): string => {
   if (value.includes('\n') || !value.includes('## ')) {
     return value;
@@ -427,15 +457,20 @@ const toSeoArticle = (row: Record<string, string>): SeoArticle => {
 
   const updateDate = normalizeDate(getField(row, 'update_date'));
   const metaRobots = getField(row, 'meta_robots').trim();
+  const excerpt = getField(row, 'excerpt').trim();
   const introLede = getField(row, 'intro_lede').trim();
   const featuredImageUrl = normalizeFeaturedImageUrl(getField(row, 'featured_image_url'));
   const featuredImageAlt = getField(row, 'featured_image_alt').trim();
   const categorySlug = getField(row, 'category_slug').trim();
+  const relatedSlugs = getField(row, 'related_slugs').trim();
   const internalLinksJson = getField(row, 'internal_links_json').trim();
   const breadcrumbJson = getField(row, 'breadcrumb_json').trim();
+  const faqJson = getField(row, 'faq_json').trim();
   const schemaPrimaryType = getField(row, 'schema_primary_type').trim();
   const primaryCity = getField(row, 'primary_city').trim();
   const primaryState = getField(row, 'primary_state').trim();
+
+  const contentBody = toSafeRenderableHtml(getField(row, 'content_body'));
 
   const article: SeoArticle = {
     status,
@@ -445,7 +480,7 @@ const toSeoArticle = (row: Record<string, string>): SeoArticle => {
     title_tag: getField(row, 'title_tag').trim(),
     meta_description: getField(row, 'meta_description').trim(),
     h1: getField(row, 'h1').trim() || getField(row, 'title_tag').trim(),
-    content_body: toSafeRenderableHtml(getField(row, 'content_body')),
+    content_body: contentBody,
   };
 
   if (updateDate) {
@@ -457,6 +492,10 @@ const toSeoArticle = (row: Record<string, string>): SeoArticle => {
   if (introLede) {
     article.intro_lede = introLede;
   }
+  const resolvedExcerpt = resolveExcerpt(excerpt, introLede, contentBody);
+  if (resolvedExcerpt) {
+    article.excerpt = resolvedExcerpt;
+  }
   if (featuredImageUrl) {
     article.featured_image_url = featuredImageUrl;
   }
@@ -466,11 +505,17 @@ const toSeoArticle = (row: Record<string, string>): SeoArticle => {
   if (categorySlug) {
     article.category_slug = categorySlug;
   }
+  if (relatedSlugs) {
+    article.related_slugs = relatedSlugs;
+  }
   if (internalLinksJson) {
     article.internal_links_json = internalLinksJson;
   }
   if (breadcrumbJson) {
     article.breadcrumb_json = breadcrumbJson;
+  }
+  if (faqJson) {
+    article.faq_json = faqJson;
   }
   if (schemaPrimaryType) {
     article.schema_primary_type = schemaPrimaryType;
@@ -529,9 +574,11 @@ export const mapSheetValuesToSeoArticleIndexItems = (values: string[][]): SeoArt
       const publishDate = normalizeDate(getField(rowMap, 'publish_date'));
       const updateDate = normalizeDate(getField(rowMap, 'update_date'));
       const introLede = getField(rowMap, 'intro_lede').trim();
+      const excerpt = getField(rowMap, 'excerpt').trim();
       const featuredImageUrl = normalizeFeaturedImageUrl(getField(rowMap, 'featured_image_url'));
       const featuredImageAlt = getField(rowMap, 'featured_image_alt').trim();
       const categorySlug = getField(rowMap, 'category_slug').trim();
+      const contentBody = toSafeRenderableHtml(getField(rowMap, 'content_body'));
 
       const item: SeoArticleIndexItem = {
         status,
@@ -548,6 +595,10 @@ export const mapSheetValuesToSeoArticleIndexItems = (values: string[][]): SeoArt
       }
       if (introLede) {
         item.intro_lede = introLede;
+      }
+      const resolvedExcerpt = resolveExcerpt(excerpt, introLede, contentBody);
+      if (resolvedExcerpt) {
+        item.excerpt = resolvedExcerpt;
       }
       if (featuredImageUrl) {
         item.featured_image_url = featuredImageUrl;
@@ -577,6 +628,7 @@ export const toSeoArticleIndexItem = (article: SeoArticle): SeoArticleIndexItem 
     title_tag: article.title_tag,
     meta_description: article.meta_description,
     h1: article.h1,
+    excerpt: article.excerpt,
     intro_lede: article.intro_lede,
     featured_image_url: article.featured_image_url,
     featured_image_alt: article.featured_image_alt,

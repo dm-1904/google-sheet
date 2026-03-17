@@ -12,6 +12,8 @@ const DEFAULT_ADDRESS = {
 
 const siteName = (import.meta.env.VITE_SITE_NAME ?? DEFAULT_SITE_NAME).trim() || DEFAULT_SITE_NAME;
 const siteBaseUrl = (import.meta.env.VITE_SITE_URL ?? '').trim().replace(/\/$/, '');
+const getRuntimeOrigin = (): string =>
+  typeof window !== 'undefined' ? window.location.origin.replace(/\/$/, '') : '';
 
 export type BreadcrumbLink = {
   name: string;
@@ -33,7 +35,8 @@ export const toAbsoluteUrl = (value: string): string => {
   }
 
   const normalizedPath = trimmed.startsWith('/') ? trimmed : `/${trimmed}`;
-  return siteBaseUrl ? `${siteBaseUrl}${normalizedPath}` : normalizedPath;
+  const baseUrl = siteBaseUrl || getRuntimeOrigin();
+  return baseUrl ? `${baseUrl}${normalizedPath}` : normalizedPath;
 };
 
 export const buildBreadcrumbListSchema = (items: BreadcrumbLink[]): JsonLdObject => {

@@ -33,5 +33,6 @@ The backend normalizes `featured_image_url` as follows:
 
 ## Notes
 
-- If you changed only Google Sheet data and do not see updates immediately, wait for API cache refresh (up to ~3 minutes) or restart the server.
+- In local development, blog endpoints now request fresh sheet data automatically.
+- In production, update delay depends on `POSTS_CACHE_TTL_MS` (server cache setting).
 - Use compressed JPG/WebP files when possible for faster load times.

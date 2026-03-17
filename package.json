@@ -8,7 +8,8 @@
   ],
   "scripts": {
     "dev": "concurrently \"npm run dev -w server\" \"npm run dev -w client\"",
-    "build": "npm run build -w server && npm run build -w client",
+    "generate:blog-static": "npm run generate:blog-static -w server",
+    "build": "npm run generate:blog-static && npm run build -w server && npm run build -w client",
     "start": "npm run start -w server"
   },
   "devDependencies": {

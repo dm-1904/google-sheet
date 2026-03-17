@@ -50,7 +50,7 @@ export const getGoogleSheetsConfig = (): GoogleSheetsConfig => {
   return {
     spreadsheetId,
     tabName: process.env.GOOGLE_SHEETS_TAB_NAME ?? 'Content',
-    range: process.env.GOOGLE_SHEETS_RANGE ?? 'A1:V',
+    range: process.env.GOOGLE_SHEETS_RANGE ?? 'A1:Z',
   };
 };
 

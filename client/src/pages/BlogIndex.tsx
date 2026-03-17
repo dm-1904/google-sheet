@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { fetchPosts } from '../api/posts';
 import { PostCard } from '../components/PostCard';
 import { SeoHead } from '../components/SeoHead';
@@ -10,7 +10,7 @@ import { formatCategoryLabel } from '../lib/category';
 const ALL_FILTER = 'all';
 
 export const BlogIndex = () => {
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchParams] = useSearchParams();
   const { data, isLoading, isError, error } = useQuery({
     queryKey: ['posts'],
     queryFn: ({ signal }) => fetchPosts({ signal }),
@@ -50,14 +50,16 @@ export const BlogIndex = () => {
     return data.filter((post) => post.category_slug?.trim() === selectedCategory);
   }, [data, selectedCategory]);
 
-  const handleCategoryChange = (value: string) => {
+  const buildCategoryHref = (value: string): string => {
     const nextParams = new URLSearchParams(searchParams);
     if (value === ALL_FILTER) {
       nextParams.delete('category');
     } else {
       nextParams.set('category', value);
     }
-    setSearchParams(nextParams, { replace: true });
+
+    const query = nextParams.toString();
+    return query ? `/blog?${query}` : '/blog';
   };
 
   if (isLoading) {
@@ -83,22 +85,24 @@ export const BlogIndex = () => {
       <section className="blog-index__filters" aria-label="Filter posts by category">
         <p className="blog-index__filter-label">Filter by Category:</p>
         <div className="blog-index__filter-list">
-          <button
-            type="button"
-            onClick={() => handleCategoryChange(ALL_FILTER)}
+          <Link
+            to={buildCategoryHref(ALL_FILTER)}
+            replace
             className={`blog-index__filter-chip${selectedCategory === ALL_FILTER ? ' is-active' : ''}`}
+            aria-current={selectedCategory === ALL_FILTER ? 'page' : undefined}
           >
             All
-          </button>
+          </Link>
           {categories.map((category) => (
-            <button
+            <Link
               key={category}
-              type="button"
-              onClick={() => handleCategoryChange(category)}
+              to={buildCategoryHref(category)}
+              replace
               className={`blog-index__filter-chip${selectedCategory === category ? ' is-active' : ''}`}
+              aria-current={selectedCategory === category ? 'page' : undefined}
             >
               {formatCategoryLabel(category)}
-            </button>
+            </Link>
           ))}
         </div>
       </section>

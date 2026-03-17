@@ -13,7 +13,7 @@ export type InternalLinkItem = {
   url: string;
 };
 
-type FaqItem = {
+export type FaqItem = {
   question: string;
   answer: string;
 };
@@ -115,28 +115,37 @@ export const parseInternalLinks = (raw?: string): InternalLinkItem[] => {
   return links;
 };
 
-const extractFaqItems = (article: SeoArticle): FaqItem[] => {
-  if (!article.schema_enable_faq) {
+const parseFaqItemsFromJson = (raw?: string): FaqItem[] => {
+  const parsed = tryParseJson(raw);
+  if (!Array.isArray(parsed)) {
     return [];
   }
 
-  const fromJson = tryParseJson(article.content_body);
-  if (Array.isArray(fromJson)) {
-    const faqItems: FaqItem[] = [];
-    fromJson.forEach((entry) => {
-      if (!entry || typeof entry !== 'object') {
-        return;
-      }
-      const row = entry as Record<string, unknown>;
-      const question = String(row.question ?? row.q ?? '').trim();
-      const answer = String(row.answer ?? row.a ?? '').trim();
-      if (question && answer) {
-        faqItems.push({ question, answer });
-      }
-    });
-    if (faqItems.length > 0) {
-      return faqItems;
+  const faqItems: FaqItem[] = [];
+  parsed.forEach((entry) => {
+    if (!entry || typeof entry !== 'object') {
+      return;
     }
+    const row = entry as Record<string, unknown>;
+    const question = String(row.question ?? row.q ?? '').trim();
+    const answer = String(row.answer ?? row.a ?? '').trim();
+    if (question && answer) {
+      faqItems.push({ question, answer });
+    }
+  });
+
+  return faqItems;
+};
+
+export const getVisibleFaqItems = (article: SeoArticle): FaqItem[] => {
+  const explicitFaqItems = parseFaqItemsFromJson(article.faq_json);
+  if (explicitFaqItems.length > 0) {
+    return explicitFaqItems;
+  }
+
+  const fallbackFaqItems = parseFaqItemsFromJson(article.content_body);
+  if (fallbackFaqItems.length > 0) {
+    return fallbackFaqItems;
   }
 
   const plainText = article.content_body.replace(/<[^>]+>/g, '\n');
@@ -250,7 +259,7 @@ export const buildStructuredData = (article: SeoArticle): SchemaObject[] => {
     schemas.push(buildBreadcrumbSchema(article, canonicalUrl));
   }
 
-  const faqItems = extractFaqItems(article);
+  const faqItems = getVisibleFaqItems(article);
   if ((article.schema_enable_faq ?? false) && faqItems.length > 0) {
     schemas.push(buildFaqSchema(faqItems));
   }

@@ -69,6 +69,20 @@
   line-height: 1.7;
 }
 
+.blog-post__faq,
+.blog-post__internal-links,
+.blog-post__related {
+  margin-top: 1.5rem;
+}
+
+.blog-post__faq-item {
+  margin-bottom: 1rem;
+}
+
+.blog-post__faq-item p {
+  margin: 0;
+}
+
 .blog-post__faq-item h3 {
   margin-bottom: 0.25rem;
 }

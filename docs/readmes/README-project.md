@@ -25,7 +25,7 @@ CLIENT_ORIGIN=http://localhost:5173
 SITE_BASE_URL=http://localhost:5173
 GOOGLE_SHEETS_SPREADSHEET_ID=NEW_GOOGLE_SHEET_ID
 GOOGLE_SHEETS_TAB_NAME=Content
-GOOGLE_SHEETS_RANGE=A1:ZZ
+GOOGLE_SHEETS_RANGE=A1:Z
 
 # Option 1: inline JSON key
 # GOOGLE_SERVICE_ACCOUNT_KEY={"type":"service_account",...}
@@ -63,11 +63,20 @@ npm run dev -w client
 npm run build
 ```
 
+This now includes static blog generation from Google Sheets before client/server builds.
+
+You can run just the generation step with:
+
+```bash
+npm run generate:blog-static
+```
+
 ## API
 
 - `GET /api/health`
 - `GET /api/posts`
 - `GET /api/posts/:slug`
+- `POST /api/blog/revalidate`
 
 ## Google Sheet Header Row
 

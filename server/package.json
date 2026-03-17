@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/index.ts",
+    "generate:blog-static": "tsx src/scripts/generateStaticBlog.ts",
     "build": "rm -rf dist && tsc -p tsconfig.json",
     "start": "node dist/index.js"
   },

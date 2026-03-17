@@ -24,6 +24,8 @@
 }
 
 .blog-index__filter-chip {
+  display: inline-flex;
+  align-items: center;
   border: 1px solid #c5d0d8;
   border-radius: 999px;
   background: #fff;
@@ -31,6 +33,7 @@
   padding: 0.45rem 0.85rem;
   font-size: 0.9rem;
   cursor: pointer;
+  text-decoration: none;
 }
 
 .blog-index__filter-chip.is-active {
