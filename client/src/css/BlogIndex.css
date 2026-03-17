@@ -11,6 +11,10 @@
   background: #f8fafb;
 }
 
+.blog-index__filter-group + .blog-index__filter-group {
+  margin-top: 0.85rem;
+}
+
 .blog-index__filter-label {
   margin: 0 0 0.55rem;
   font-size: 0.95rem;

@@ -11,6 +11,7 @@ This project now supports static blog page generation from Google Sheets rows.
   - `/blog/:slug`
 - Keep Google Sheets as source of truth.
 - Keep current SPA routes/components as fallback and for interactive app behavior.
+- Static `/blog` index supports client-side city + category filtering via URL hash state (no extra indexable URLs).
 
 This approach avoids a full framework migration while giving SEO-first static HTML for blog pages.
 
@@ -102,6 +103,13 @@ Card snippet priority:
 3. Derived short text from `content_body`
 4. `meta_description` fallback
 
+## Blog Index Filter Behavior
+
+- City filter is shown above category filter.
+- Both city and category options are sorted alphabetically.
+- Static index uses hash state (example: `#city=surprise&category=buyers`), so no crawlable duplicate query URLs are created.
+- SPA index still supports query filters for navigation and uses `noindex,follow` on filtered states.
+
 ## Related Posts Rule
 
 Priority:
@@ -167,7 +175,9 @@ Should be indexed:
 
 Should not be indexed:
 
+- `/blog?city=...` SPA filter views
 - `/blog?category=...` SPA filter views
+- `/blog?city=...&category=...` SPA filter views
 - Any post with `meta_robots=noindex`
 
 ## Environment Variables

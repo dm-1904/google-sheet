@@ -578,6 +578,7 @@ export const mapSheetValuesToSeoArticleIndexItems = (values: string[][]): SeoArt
       const featuredImageUrl = normalizeFeaturedImageUrl(getField(rowMap, 'featured_image_url'));
       const featuredImageAlt = getField(rowMap, 'featured_image_alt').trim();
       const categorySlug = getField(rowMap, 'category_slug').trim();
+      const primaryCity = getField(rowMap, 'primary_city').trim();
       const contentBody = toSafeRenderableHtml(getField(rowMap, 'content_body'));
 
       const item: SeoArticleIndexItem = {
@@ -609,6 +610,9 @@ export const mapSheetValuesToSeoArticleIndexItems = (values: string[][]): SeoArt
       if (categorySlug) {
         item.category_slug = categorySlug;
       }
+      if (primaryCity) {
+        item.primary_city = primaryCity;
+      }
 
       return item;
     })
@@ -633,5 +637,6 @@ export const toSeoArticleIndexItem = (article: SeoArticle): SeoArticleIndexItem 
     featured_image_url: article.featured_image_url,
     featured_image_alt: article.featured_image_alt,
     category_slug: article.category_slug,
+    primary_city: article.primary_city,
   };
 };

@@ -4,11 +4,12 @@ This document covers the current blog SEO implementation for this project.
 
 ## 1. Current Blog SEO Architecture
 
-- Frontend: React + React Router (CSR).
+- Frontend: React + React Router (CSR) with static blog generation support.
 - Backend: Express API + Google Sheets read-only CMS.
 - Blog index route: `/blog`
 - Blog detail route: `/blog/:slug`
 - Content source: Google Sheets row-based CMS.
+- Blog index supports URL query filters for `city` and `category`.
 - Structured data: JSON-LD generated in the blog post template.
 - Sitemap endpoint: `/api/sitemap.xml`
 - Robots file: `client/public/robots.txt`
@@ -63,7 +64,8 @@ This document covers the current blog SEO implementation for this project.
 
 - Title and description are set in the page template.
 - Canonical is `/blog`.
-- Category-filtered query views are `noindex,follow`.
+- Filtered query views (`city` and/or `category`) are `noindex,follow`.
+- City filter is rendered above category filter, and both option lists are sorted alphabetically.
 
 ### Blog article (`/blog/:slug`)
 
@@ -118,7 +120,9 @@ Should be indexed:
 
 Should not be indexed:
 
+- `/blog?city=...` filtered views (`noindex,follow`)
 - `/blog?category=...` filtered views (`noindex,follow`)
+- `/blog?city=...&category=...` filtered views (`noindex,follow`)
 - Any blog post row where `meta_robots` includes `noindex`
 
 ## 8. Adding a New Blog Post (SEO Checklist)
@@ -148,6 +152,7 @@ Should not be indexed:
 
 ## 11. Known Limitations
 
-- Blog pages are CSR-rendered (not SSR/SSG), so search engines must render JS.
+- React app routes are CSR in-app, but static blog HTML generation is available separately (see `README-static-blog-generation.md`).
+- Absolute canonicals and OG URLs depend on a valid `SITE_BASE_URL` (or browser runtime origin for CSR pages).
 - Related posts depend on available index data and category quality.
 - FAQ schema quality depends on valid `faq_json` or parseable content.

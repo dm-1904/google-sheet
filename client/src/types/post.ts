@@ -41,4 +41,5 @@ export type SeoArticleIndexItem = Pick<
   | 'featured_image_url'
   | 'featured_image_alt'
   | 'category_slug'
+  | 'primary_city'
 >;

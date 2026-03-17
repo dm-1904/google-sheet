@@ -118,6 +118,20 @@ const formatCategoryLabel = (value?: string): string => {
     .join(' ');
 };
 
+const formatCityLabel = (value?: string): string => {
+  const trimmed = value?.trim();
+  if (!trimmed) {
+    return '';
+  }
+
+  return trimmed
+    .replace(/[-_]+/g, ' ')
+    .split(' ')
+    .filter(Boolean)
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+};
+
 const stripHtml = (value: string): string => {
   return value.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
 };
@@ -563,9 +577,21 @@ const buildIndexPageHtml = ({
   siteBaseUrl: string;
   siteName: string;
 }): string => {
+  const cities = Array.from(
+    new Set(posts.map((post) => post.primary_city?.trim()).filter((value): value is string => Boolean(value))),
+  ).sort((left, right) =>
+    left.localeCompare(right, undefined, {
+      sensitivity: 'base',
+    }),
+  );
+
   const categories = Array.from(
     new Set(posts.map((post) => post.category_slug?.trim()).filter((value): value is string => Boolean(value))),
-  ).sort((left, right) => left.localeCompare(right));
+  ).sort((left, right) =>
+    left.localeCompare(right, undefined, {
+      sensitivity: 'base',
+    }),
+  );
 
   const cardsMarkup = posts
     .map((post) => {
@@ -574,8 +600,9 @@ const buildIndexPageHtml = ({
       const summary = getCardSnippet(post, postBodiesBySlug.get(post.slug));
       const categoryLabel = formatCategoryLabel(post.category_slug);
       const categoryValue = normalizeCategory(post.category_slug);
+      const cityValue = normalizeCategory(post.primary_city);
       return `
-        <article class="post-card" data-post-category="${escapeAttribute(categoryValue || 'uncategorized')}">
+        <article class="post-card" data-post-category="${escapeAttribute(categoryValue || 'uncategorized')}" data-post-city="${escapeAttribute(cityValue || 'unknown')}">
           <p class="post-card__meta">
             <span class="post-card__category">${escapeHtml(categoryLabel)}</span> · ${escapeHtml(date)}
           </p>
@@ -589,16 +616,30 @@ const buildIndexPageHtml = ({
     .join('\n');
 
   const filterMarkup = `
-    <section class="blog-index__filters" aria-label="Filter posts by category">
-      <p class="blog-index__filter-label">Filter by Category:</p>
-      <div class="blog-index__filter-list">
-        <a href="#all" class="blog-index__filter-chip" data-filter="all">All</a>
-        ${categories
-          .map((category) => {
-            const normalized = normalizeCategory(category);
-            return `<a href="#category=${encodeURIComponent(normalized)}" class="blog-index__filter-chip" data-filter="${escapeAttribute(normalized)}">${escapeHtml(formatCategoryLabel(category))}</a>`;
-          })
-          .join('')}
+    <section class="blog-index__filters" aria-label="Filter posts by city and category">
+      <div class="blog-index__filter-group">
+        <p class="blog-index__filter-label">Filter by City:</p>
+        <div class="blog-index__filter-list">
+          <a href="#all" class="blog-index__filter-chip" data-filter-group="city" data-filter-value="all">All</a>
+          ${cities
+            .map((city) => {
+              const normalized = normalizeCategory(city);
+              return `<a href="#city=${encodeURIComponent(normalized)}" class="blog-index__filter-chip" data-filter-group="city" data-filter-value="${escapeAttribute(normalized)}">${escapeHtml(formatCityLabel(city))}</a>`;
+            })
+            .join('')}
+        </div>
+      </div>
+      <div class="blog-index__filter-group">
+        <p class="blog-index__filter-label">Filter by Category:</p>
+        <div class="blog-index__filter-list">
+          <a href="#all" class="blog-index__filter-chip" data-filter-group="category" data-filter-value="all">All</a>
+          ${categories
+            .map((category) => {
+              const normalized = normalizeCategory(category);
+              return `<a href="#category=${encodeURIComponent(normalized)}" class="blog-index__filter-chip" data-filter-group="category" data-filter-value="${escapeAttribute(normalized)}">${escapeHtml(formatCategoryLabel(category))}</a>`;
+            })
+            .join('')}
+        </div>
       </div>
     </section>
   `.trim();
@@ -608,7 +649,7 @@ const buildIndexPageHtml = ({
       <h1>Surprise &amp; West Valley Real Estate Blog</h1>
       <p>Local market insights, neighborhood guides, and relocation advice for buyers and sellers in the West Valley.</p>
       ${filterMarkup}
-      <p id="blog-index-empty-state" style="display:none;">No posts found for this category.</p>
+      <p id="blog-index-empty-state" style="display:none;">No posts found for this filter combination.</p>
       ${cardsMarkup}
     </main>
   `.trim();
@@ -634,31 +675,74 @@ const buildIndexPageHtml = ({
 
   const filterScript = `
     (() => {
-      const chips = Array.from(document.querySelectorAll('[data-filter]'));
-      const cards = Array.from(document.querySelectorAll('[data-post-category]'));
+      const chips = Array.from(document.querySelectorAll('[data-filter-group][data-filter-value]'));
+      const cards = Array.from(document.querySelectorAll('[data-post-category][data-post-city]'));
       const emptyState = document.getElementById('blog-index-empty-state');
+
       const parseFromHash = () => {
         const hash = decodeURIComponent(window.location.hash.replace(/^#/, '').trim());
-        if (!hash || hash === 'all') return 'all';
-        if (hash.startsWith('category=')) return hash.slice('category='.length);
-        return hash;
+        if (!hash || hash === 'all') {
+          return { city: 'all', category: 'all' };
+        }
+
+        const params = new URLSearchParams(hash);
+        return {
+          city: (params.get('city') || 'all').trim().toLowerCase() || 'all',
+          category: (params.get('category') || 'all').trim().toLowerCase() || 'all',
+        };
       };
-      const applyFilter = (category) => {
+
+      const toHash = (state) => {
+        const params = new URLSearchParams();
+        if (state.city !== 'all') {
+          params.set('city', state.city);
+        }
+        if (state.category !== 'all') {
+          params.set('category', state.category);
+        }
+        const query = params.toString();
+        return query ? '#' + query : '#all';
+      };
+
+      const applyFilter = (state) => {
         let visibleCount = 0;
         cards.forEach((card) => {
           const cardCategory = card.getAttribute('data-post-category') || '';
-          const visible = category === 'all' || cardCategory === category;
+          const cardCity = card.getAttribute('data-post-city') || '';
+          const categoryMatches = state.category === 'all' || cardCategory === state.category;
+          const cityMatches = state.city === 'all' || cardCity === state.city;
+          const visible = categoryMatches && cityMatches;
           card.style.display = visible ? '' : 'none';
           if (visible) visibleCount += 1;
         });
+
         chips.forEach((chip) => {
-          const chipCategory = chip.getAttribute('data-filter');
-          chip.classList.toggle('is-active', chipCategory === category || (category === 'all' && chipCategory === 'all'));
+          const group = chip.getAttribute('data-filter-group');
+          const value = chip.getAttribute('data-filter-value') || 'all';
+          const selectedValue = group === 'city' ? state.city : state.category;
+          chip.classList.toggle('is-active', selectedValue === value);
         });
+
         if (emptyState) {
           emptyState.style.display = visibleCount === 0 ? '' : 'none';
         }
       };
+
+      chips.forEach((chip) => {
+        chip.addEventListener('click', (event) => {
+          event.preventDefault();
+          const group = chip.getAttribute('data-filter-group');
+          const value = (chip.getAttribute('data-filter-value') || 'all').toLowerCase();
+          const next = parseFromHash();
+          if (group === 'city') {
+            next.city = value;
+          } else if (group === 'category') {
+            next.category = value;
+          }
+          window.location.hash = toHash(next);
+        });
+      });
+
       applyFilter(parseFromHash());
       window.addEventListener('hashchange', () => applyFilter(parseFromHash()));
     })();
